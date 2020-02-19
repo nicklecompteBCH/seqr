@@ -158,7 +158,7 @@ class SavedVariantAPITest(TransactionTestCase):
         self.assertEqual(response.status_code, 200)
 
         self.assertEqual(len(response.json()['savedVariantsByGuid']), 1)
-        variant_guid = response.json()['savedVariantsByGuid'].keys()[0]
+        variant_guid = list(response.json()['savedVariantsByGuid'].keys())[0]
 
         saved_variant = SavedVariant.objects.get(guid=variant_guid, family__guid='F000001_1')
         variant_json.update({'xpos': 2061413835})
@@ -195,8 +195,8 @@ class SavedVariantAPITest(TransactionTestCase):
         response = self.client.post(create_saved_compound_hets_url, content_type='application/json', data=json.dumps(request_body))
         self.assertEqual(response.status_code, 200)
 
-        new_compound_het_3_guid = response.json()['savedVariantsByGuid'].keys()[1]
-        new_compound_het_4_guid = response.json()['savedVariantsByGuid'].keys()[0]
+        new_compound_het_3_guid = list(response.json()['savedVariantsByGuid'].keys())[1]
+        new_compound_het_4_guid = list(response.json()['savedVariantsByGuid'].keys())[0]
 
         saved_compound_het_3 = SavedVariant.objects.get(guid=new_compound_het_3_guid, family__guid='F000001_1')
         saved_compound_het_4 = SavedVariant.objects.get(guid=new_compound_het_4_guid, family__guid='F000001_1')
@@ -270,7 +270,7 @@ class SavedVariantAPITest(TransactionTestCase):
             {'note': 'new user-selected gene note', 'saveAsGeneNote': True, 'familyGuid': 'F000001_1'}
         ))
         self.assertEqual(response.status_code, 200)
-        new_variant_note_response = response.json()['variantNotesByGuid'].values()[0]
+        new_variant_note_response = list(response.json()['variantNotesByGuid'].values())[0]
         self.assertEqual(new_variant_note_response['note'], 'new user-selected gene note')
         new_gene_note_response = response.json()['genesById'][GENE_GUID]['notes'][1]
         self.assertEqual(new_gene_note_response['note'], 'new user-selected gene note')
@@ -316,7 +316,7 @@ class SavedVariantAPITest(TransactionTestCase):
         self.assertEqual(response.status_code, 200)
 
         self.assertEqual(len(response.json()['savedVariantsByGuid']), 2)
-        compound_het_guids = response.json()['savedVariantsByGuid'].keys()
+        compound_het_guids = list(response.json()['savedVariantsByGuid'].keys())
         compound_het_guids.remove(VARIANT_GUID)
         compound_het_5_guid = compound_het_guids[0]
 
@@ -352,7 +352,7 @@ class SavedVariantAPITest(TransactionTestCase):
 
         self.assertEqual(response.status_code, 200)
         response_json = response.json()
-        for note in response.json()['variantNotesByGuid'].values():
+        for note in list(response.json()['variantNotesByGuid'].values()):
             self.assertEqual(note['note'], 'new_compound_hets_variant_note')
             self.assertEqual(note['submitToClinvar'], True)
 
@@ -430,7 +430,7 @@ class SavedVariantAPITest(TransactionTestCase):
         tags = response.json()['variantTagsByGuid']
         self.assertEqual(len(tags), 2)
         self.assertIsNone(tags.pop('VT1726961_2103343353_r0390_100'))
-        excluded_guid = tags.keys()[0]
+        excluded_guid = list(tags.keys())[0]
         self.assertEqual('Excluded', tags[excluded_guid]['name'])
         self.assertSetEqual(
             {excluded_guid, 'VT1708633_2103343353_r0390_100'},
@@ -496,11 +496,11 @@ class SavedVariantAPITest(TransactionTestCase):
         self.assertEqual(len(compound_het_1_tag_guids), 2)
         self.assertEqual(len(compound_het_2_tag_guids), 2)
         self.assertSetEqual({"Review", "Excluded"}, {
-            vt['name'] for vt in response_json['variantTagsByGuid'].values()
+            vt['name'] for vt in list(response_json['variantTagsByGuid'].values())
             if vt['tagGuid'] in compound_het_1_tag_guids
         })
         self.assertSetEqual({"Review", "Excluded"}, {
-            vt['name'] for vt in response_json['variantTagsByGuid'].values()
+            vt['name'] for vt in list(response_json['variantTagsByGuid'].values())
             if vt['tagGuid'] in compound_het_2_tag_guids
         })
         self.assertSetEqual(
@@ -534,10 +534,10 @@ class SavedVariantAPITest(TransactionTestCase):
         self.assertEqual(len(compound_het_2_functional_data_guids), 2)
         self.assertSetEqual(
             {"Biochemical Function", "Bonferroni corrected p-value"},
-            {vt['name'] for vt in response.json()['variantFunctionalDataByGuid'].values()})
+            {vt['name'] for vt in list(response.json()['variantFunctionalDataByGuid'].values())})
         self.assertSetEqual(
             {"An updated note", 0.05},
-            {vt['metadata'] for vt in response.json()['variantFunctionalDataByGuid'].values()})
+            {vt['metadata'] for vt in list(response.json()['variantFunctionalDataByGuid'].values())})
         variant_functional_data = VariantFunctionalData.objects.filter(
             saved_variants__guid__in=[COMPOUND_HET_1_GUID, COMPOUND_HET_2_GUID])
         self.assertSetEqual(

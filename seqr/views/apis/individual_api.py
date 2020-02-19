@@ -116,16 +116,16 @@ def edit_individuals_handler(request, project_guid):
             {}, status=400, reason="'individuals' not specified")
 
     update_individuals = {ind['individualGuid']: ind for ind in modified_individuals_list}
-    update_individual_models = {ind.guid: ind for ind in Individual.objects.filter(guid__in=update_individuals.keys())}
+    update_individual_models = {ind.guid: ind for ind in Individual.objects.filter(guid__in=list(update_individuals.keys()))}
     for modified_ind in modified_individuals_list:
         model = update_individual_models[modified_ind['individualGuid']]
         if modified_ind[JsonConstants.INDIVIDUAL_ID_COLUMN] != model.individual_id:
             modified_ind[JsonConstants.PREVIOUS_INDIVIDUAL_ID_COLUMN] = model.individual_id
 
     modified_family_ids = {ind.get('familyId') or ind['family']['familyId'] for ind in modified_individuals_list}
-    modified_family_ids.update({ind.family.family_id for ind in update_individual_models.values()})
+    modified_family_ids.update({ind.family.family_id for ind in list(update_individual_models.values())})
     related_individuals = Individual.objects.filter(
-        family__family_id__in=modified_family_ids, family__project=project).exclude(guid__in=update_individuals.keys())
+        family__family_id__in=modified_family_ids, family__project=project).exclude(guid__in=list(update_individuals.keys()))
     related_individuals_json = _get_json_for_individuals(related_individuals, project_guid=project_guid, family_fields=['family_id'])
     individuals_list = modified_individuals_list + related_individuals_json
 
@@ -257,10 +257,10 @@ def receive_individuals_table_handler(request, project_guid):
                 (r[JsonConstants.INDIVIDUAL_ID_COLUMN], False)
             )
 
-    num_individuals = sum([len(indiv_ids) for indiv_ids in individual_ids_by_family.values()])
+    num_individuals = sum([len(indiv_ids) for indiv_ids in list(individual_ids_by_family.values())])
     num_existing_individuals = 0
     missing_prev_ids = []
-    for family_id, indiv_ids in individual_ids_by_family.items():
+    for family_id, indiv_ids in list(individual_ids_by_family.items()):
         existing_individuals = {i.individual_id for i in Individual.objects.filter(
             individual_id__in=[indiv_id for (indiv_id, _) in indiv_ids], family__family_id=family_id, family__project=project
         ).only('individual_id')}

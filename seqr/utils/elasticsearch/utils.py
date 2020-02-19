@@ -33,10 +33,10 @@ def get_index_metadata(index_name, client):
         raise InvalidIndexException('Error accessing index "{}": {}'.format(
             index_name, e.error if hasattr(e, 'error') else e.message))
     index_metadata = {}
-    for index_name, mapping in mappings.items():
+    for index_name, mapping in list(mappings.items()):
         variant_mapping = mapping['mappings'].get(VARIANT_DOC_TYPE, {})
         index_metadata[index_name] = variant_mapping.get('_meta', {})
-        index_metadata[index_name]['fields'] = variant_mapping['properties'].keys()
+        index_metadata[index_name]['fields'] = list(variant_mapping['properties'].keys())
     safe_redis_set_json(cache_key, index_metadata)
     return index_metadata
 

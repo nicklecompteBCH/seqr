@@ -201,7 +201,7 @@ def update_family_pedigree_image(request, family_guid):
     elif len(request.FILES) > 1:
         return create_json_response({}, status=400, reason='Received {} files'.format(len(request.FILES)))
     else:
-        pedigree_image = request.FILES.values()[0]
+        pedigree_image = list(request.FILES.values())[0]
 
     family.pedigree_image = pedigree_image
     family.save()
@@ -244,7 +244,7 @@ def receive_families_table_handler(request, project_guid):
             raise ValueError('Invalid header, missing family id column')
 
         return [{column: row[index] if isinstance(index, int) else next((row[i] for i in index if row[i]), None)
-                for column, index in column_map.items()} for row in records[1:]]
+                for column, index in list(column_map.items())} for row in records[1:]]
 
     try:
         uploaded_file_id, filename, json_records = save_uploaded_file(request, process_records=_process_records)

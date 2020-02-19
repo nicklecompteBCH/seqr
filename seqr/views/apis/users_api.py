@@ -1,5 +1,5 @@
 import json
-import urllib
+import urllib.request, urllib.parse, urllib.error
 from anymail.exceptions import AnymailError
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import login, authenticate
@@ -62,7 +62,7 @@ def forgot_password(request):
         """.format(
         full_name=user.get_full_name(),
         base_url=BASE_URL,
-        password_token=urllib.quote_plus(user.password),
+        password_token=urllib.parse.quote_plus(user.password),
     )
 
     try:

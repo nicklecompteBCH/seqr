@@ -144,9 +144,9 @@ def delete_project_locus_lists(request, project_guid):
 
 def _update_locus_list_items(locus_list, genes_by_id, intervals, request_json):
     # Update genes
-    locus_list.locuslistgene_set.exclude(gene_id__in=genes_by_id.keys()).delete()
+    locus_list.locuslistgene_set.exclude(gene_id__in=list(genes_by_id.keys())).delete()
 
-    for gene_id in genes_by_id.keys():
+    for gene_id in list(genes_by_id.keys()):
         LocusListGene.objects.get_or_create(
             locus_list=locus_list,
             gene_id=gene_id,

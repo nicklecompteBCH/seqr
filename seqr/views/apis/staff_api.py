@@ -84,14 +84,14 @@ def elasticsearch_status(request):
         index.update(index_mapping.get('_meta', {}))
 
         projects_for_index = []
-        for index_prefix in seqr_index_projects.keys():
+        for index_prefix in list(seqr_index_projects.keys()):
             if index_name.startswith(index_prefix):
-                projects_for_index += seqr_index_projects.pop(index_prefix).keys()
+                projects_for_index += list(seqr_index_projects.pop(index_prefix).keys())
         index['projects'] = [{'projectGuid': project.guid, 'projectName': project.name} for project in projects_for_index]
 
     errors = ['{} does not exist and is used by project(s) {}'.format(
-        index, ', '.join(['{} ({} samples)'.format(p.name, len(indivs)) for p, indivs in project_individuals.items()])
-    ) for index, project_individuals in seqr_index_projects.items() if project_individuals]
+        index, ', '.join(['{} ({} samples)'.format(p.name, len(indivs)) for p, indivs in list(project_individuals.items())])
+    ) for index, project_individuals in list(seqr_index_projects.items()) if project_individuals]
 
     return create_json_response({
         'indices': indices,
@@ -121,7 +121,7 @@ def mme_details(request):
 
     return create_json_response({
         'metrics': get_mme_metrics(),
-        'submissions': submissions_by_guid.values(),
+        'submissions': list(submissions_by_guid.values()),
         'genesById': genes_by_id,
     })
 
@@ -136,7 +136,7 @@ def seqr_stats(request):
     for sample in Sample.objects.filter(is_active=True).only('sample_id', 'sample_type'):
         sample_counts[sample.sample_type].add(sample.sample_id)
 
-    for sample_type, sample_ids_set in sample_counts.items():
+    for sample_type, sample_ids_set in list(sample_counts.items()):
         sample_counts[sample_type] = len(sample_ids_set)
 
     return create_json_response({
@@ -156,16 +156,16 @@ def anvil_export(request, project_guid):
     else:
         projects_by_guid = {p.guid: p for p in Project.objects.filter(projectcategory__name__iexact='anvil')}
 
-    individuals = _get_loaded_before_date_project_individuals(projects_by_guid.values(), loaded_before=request.GET.get('loadedBefore'))
+    individuals = _get_loaded_before_date_project_individuals(list(projects_by_guid.values()), loaded_before=request.GET.get('loadedBefore'))
 
-    saved_variants_by_family = _get_saved_known_gene_variants_by_family(projects_by_guid.values())
+    saved_variants_by_family = _get_saved_known_gene_variants_by_family(list(projects_by_guid.values()))
 
     # Handle compound het genes
     compound_het_gene_id_by_family = {}
-    for family_guid, saved_variants in saved_variants_by_family.items():
+    for family_guid, saved_variants in list(saved_variants_by_family.items()):
         if len(saved_variants) > 1:
             potential_compound_het_variants = [
-                variant for variant in saved_variants if all(gen['numAlt'] < 2 for gen in variant['genotypes'].values())
+                variant for variant in saved_variants if all(gen['numAlt'] < 2 for gen in list(variant['genotypes'].values()))
             ]
             main_gene_ids = {_get_variant_main_transcript(variant)['geneId'] for variant in potential_compound_het_variants}
             if len(main_gene_ids) > 1:
@@ -199,11 +199,11 @@ def anvil_export(request, project_guid):
                     'Transcript': main_transcript['transcriptId'],
                     'geneId': gene_id,
                 }
-                row.update({'{}-{}'.format(k, i + 1): v for k, v in variant_fields.items()})
+                row.update({'{}-{}'.format(k, i + 1): v for k, v in list(variant_fields.items())})
 
     genes_by_id = get_genes(gene_ids)
     for row in rows:
-        for key, gene_id in row.items():
+        for key, gene_id in list(row.items()):
             if key.startswith('geneId') and genes_by_id.get(gene_id):
                 row[key.replace('geneId', 'Gene')] = genes_by_id[gene_id]['geneSymbol']
 
@@ -214,7 +214,7 @@ def _get_variant_main_transcript(variant):
     main_transcript_id = variant.get('selectedMainTranscriptId') or variant.get('mainTranscriptId')
     if not main_transcript_id:
         return {}
-    for transcripts in variant.get('transcripts', {}).values():
+    for transcripts in list(variant.get('transcripts', {}).values()):
         main_transcript = next((t for t in transcripts if t['transcriptId'] == main_transcript_id), None)
         if main_transcript:
             return main_transcript
@@ -399,7 +399,7 @@ def discovery_sheet(request, project_guid):
     if "external" in project.name or "reprocessed" in project.name:
         sequencing_approach = "REAN"
     else:
-        sequencing_approach = loaded_samples_by_family.values()[0][-1].sample_type
+        sequencing_approach = list(loaded_samples_by_family.values())[0][-1].sample_type
     initial_row = {
         "project_guid": project.guid,
         "collaborator": project.name,
@@ -531,7 +531,7 @@ def _generate_rows(initial_row, family, samples, saved_variants, submitted_to_mm
         row["gene_count"] = len(gene_ids_to_saved_variants)
 
     rows = []
-    for gene_id, variants in gene_ids_to_saved_variants.items():
+    for gene_id, variants in list(gene_ids_to_saved_variants.items()):
         rows.append(_get_gene_row(
             dict(row), gene_id, gene_ids_to_inheritance[gene_id], gene_ids_to_variant_tag_names[gene_id], variants))
     return rows
@@ -648,18 +648,18 @@ def _update_variant_inheritance(variant, affected_individual_guids, unaffected_i
 
     main_transcript_id = variant.selected_main_transcript_id or variant.saved_variant_json.get('mainTranscriptId')
     if main_transcript_id:
-        for gene_id, transcripts in variant.saved_variant_json['transcripts'].items():
+        for gene_id, transcripts in list(variant.saved_variant_json['transcripts'].items()):
             if any(t['transcriptId'] == main_transcript_id for t in transcripts):
                 variant.saved_variant_json['mainTranscriptGeneId'] = gene_id
                 break
-    elif len(variant.saved_variant_json['transcripts']) == 1 and not variant.saved_variant_json['transcripts'].values()[0]:
-        variant.saved_variant_json['mainTranscriptGeneId'] = variant.saved_variant_json['transcripts'].keys()[0]
+    elif len(variant.saved_variant_json['transcripts']) == 1 and not list(variant.saved_variant_json['transcripts'].values())[0]:
+        variant.saved_variant_json['mainTranscriptGeneId'] = list(variant.saved_variant_json['transcripts'].keys())[0]
 
 
 def _get_variant_genotypes(genotypes, affected_individual_guids, unaffected_individual_guids,
                            affected_indivs_with_hom_alt_variants, affected_indivs_with_het_variants,
                            unaffected_indivs_with_hom_alt_variants, unaffected_indivs_with_het_variants):
-    for sample_guid, genotype in genotypes.items():
+    for sample_guid, genotype in list(genotypes.items()):
         if genotype["numAlt"] == 2 and sample_guid in affected_individual_guids:
             affected_indivs_with_hom_alt_variants.add(sample_guid)
         elif genotype["numAlt"] == 1 and sample_guid in affected_individual_guids:
@@ -675,12 +675,12 @@ def _get_gene_to_variant_info_map(saved_variants, potential_compound_het_genes):
     gene_ids_to_variant_tag_names = defaultdict(set)
     gene_ids_to_inheritance = defaultdict(set)
     # Compound het variants are reported in the gene that they share
-    for gene_id, variants in potential_compound_het_genes.items():
+    for gene_id, variants in list(potential_compound_het_genes.items()):
         if len(variants) > 1:
             gene_ids_to_inheritance[gene_id].add("AR-comphet")
             # Only include compound hets for one of the genes they are both in
             existing_gene_id = next((
-                existing_gene_id for existing_gene_id, existing_variants in gene_ids_to_saved_variants.items()
+                existing_gene_id for existing_gene_id, existing_variants in list(gene_ids_to_saved_variants.items())
                 if existing_variants == variants), None)
             if existing_gene_id:
                 main_gene_ids = {
@@ -736,7 +736,7 @@ def _get_gene_row(row, gene_id, inheritances, variant_tag_names, variants):
         _set_discovery_details(row, variant_tag_names, variants)
     elif has_known_gene_for_phenotype:
         row["phenotype_class"] = "KNOWN"
-        for functional_field in FUNCTIONAL_DATA_FIELD_MAP.values():
+        for functional_field in list(FUNCTIONAL_DATA_FIELD_MAP.values()):
             row[functional_field] = "KPG"
 
     if not row["submitted_to_mme"] == 'Y':
@@ -769,7 +769,7 @@ def _set_discovery_details(row, variant_tag_names, variants):
         row["phenotype_class"] = "UE"
 
     # Set defaults
-    for functional_field in FUNCTIONAL_DATA_FIELD_MAP.values():
+    for functional_field in list(FUNCTIONAL_DATA_FIELD_MAP.values()):
         if functional_field == ADDITIONAL_KINDREDS_FIELD:
             row[functional_field] = "1"
         elif functional_field in METADATA_FUNCTIONAL_DATA_FIELDS:
@@ -813,7 +813,7 @@ def _update_initial_omim_numbers(rows):
     omim_number_map = {str(omim.phenotype_mim_number): omim.phenotypic_series_number
                        for omim in Omim.objects.filter(phenotype_mim_number__in=omim_numbers, phenotypic_series_number__isnull=False)}
 
-    for mim_number, phenotypic_series_number in omim_number_map.items():
+    for mim_number, phenotypic_series_number in list(omim_number_map.items()):
         logger.info("Will replace OMIM initial # %s with phenotypic series %s" % (mim_number, phenotypic_series_number))
 
     for row in rows:
@@ -839,14 +839,14 @@ def saved_variants_page(request, tag):
     families = {variant.family for variant in saved_variant_models}
     individuals = Individual.objects.filter(family__in=families)
 
-    saved_variants = response_json['savedVariantsByGuid'].values()
+    saved_variants = list(response_json['savedVariantsByGuid'].values())
     genes = _saved_variant_genes(saved_variants)
-    locus_list_guids = _add_locus_lists(project_models_by_guid.values(), saved_variants, genes)
+    locus_list_guids = _add_locus_lists(list(project_models_by_guid.values()), saved_variants, genes)
 
-    projects_json = get_json_for_projects(project_models_by_guid.values(), user=request.user, add_project_category_guids_field=False)
+    projects_json = get_json_for_projects(list(project_models_by_guid.values()), user=request.user, add_project_category_guids_field=False)
     functional_tag_types = get_json_for_variant_functional_data_tag_types()
 
-    variant_tag_types = VariantTagType.objects.filter(Q(project__in=project_models_by_guid.values()) | Q(project__isnull=True))
+    variant_tag_types = VariantTagType.objects.filter(Q(project__in=list(project_models_by_guid.values())) | Q(project__isnull=True))
     prefetch_related_objects(variant_tag_types, 'project')
     variant_tags_json = _get_json_for_models(variant_tag_types)
     tag_projects = {vt.guid: vt.project.guid for vt in variant_tag_types if vt.project}
@@ -882,7 +882,7 @@ def upload_qc_pipeline_output(request):
     file_path = json.loads(request.body)['file']
     raw_records = parse_file(file_path, file_iter(file_path))
 
-    json_records = [dict(zip(raw_records[0], row)) for row in raw_records[1:]]
+    json_records = [dict(list(zip(raw_records[0], row))) for row in raw_records[1:]]
 
     missing_columns = [field for field in ['seqr_id', 'data_type', 'filter_flags', 'qc_metrics_filters', 'qc_pop']
                        if field not in json_records[0]]
@@ -956,7 +956,7 @@ def upload_qc_pipeline_output(request):
         logger.info('Found {} multi-individual samples from qc output'.format(len(multi_individual_samples)))
         warnings.append('The following {} samples were added to multiple individuals: {}'.format(
             len(multi_individual_samples), ', '.join(
-                sorted(['{} ({})'.format(sample_id, count) for sample_id, count in multi_individual_samples.items()]))))
+                sorted(['{} ({})'.format(sample_id, count) for sample_id, count in list(multi_individual_samples.items())]))))
 
     if missing_sample_ids:
         logger.info('Missing {} samples from qc output'.format(len(missing_sample_ids)))
@@ -991,7 +991,7 @@ def upload_qc_pipeline_output(request):
 
         inidividuals_by_population[record['qc_pop'].upper()] += record['individual_ids']
 
-    for population, indiv_ids in inidividuals_by_population.items():
+    for population, indiv_ids in list(inidividuals_by_population.items()):
         Individual.objects.filter(id__in=indiv_ids).update(population=population)
 
     if unknown_filter_flags:

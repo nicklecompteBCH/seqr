@@ -18,7 +18,7 @@ def run_in_background(command, print_command=True, env={}):
         subprocess Popen object
     """
     full_env = dict(os.environ)  # copy external environment
-    full_env.update({key: str(value) for key, value in env.items()})  # make sure all values are strings
+    full_env.update({key: str(value) for key, value in list(env.items())})  # make sure all values are strings
 
     if print_command:
         logger.info("==> %(command)s" % locals())
@@ -54,7 +54,7 @@ def run(command,
         string: command output (combined stdout and stderr), or if return_subprocess_obj=True the return 2-tuple: (output, subprocess Popen object)
     """
     full_env = dict(os.environ)  # copy external environment
-    full_env.update({key: str(value) for key, value in env.items()})  # make sure all values are strings
+    full_env.update({key: str(value) for key, value in list(env.items())})  # make sure all values are strings
 
     if print_command:
         logger.info("==> %(command)s" % locals())
@@ -117,7 +117,7 @@ def ask_yes_no_question(question):
         question (string): question to ask
     """
     while True:
-        i = raw_input(str(question) + " [Y/n] ")
+        i = input(str(question) + " [Y/n] ")
 
         if i and i.lower() == 'y':
             return True

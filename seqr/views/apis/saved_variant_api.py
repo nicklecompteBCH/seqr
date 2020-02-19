@@ -39,7 +39,7 @@ def saved_variant_data(request, project_guid, variant_guids=None):
 
     response = get_json_for_saved_variants_with_tags(variant_query, add_details=True)
 
-    variants = response['savedVariantsByGuid'].values()
+    variants = list(response['savedVariantsByGuid'].values())
     genes = _saved_variant_genes(variants)
     _add_locus_lists([project], variants, genes)
     response['genesById'] = genes
@@ -130,7 +130,7 @@ def create_variant_note_handler(request, variant_guids):
     if save_as_gene_note:
         main_transcript_id = saved_variants[0].selected_main_transcript_id or saved_variants[0].saved_variant_json['mainTranscriptId']
         gene_id = next(
-            (gene_id for gene_id, transcripts in saved_variants[0].saved_variant_json['transcripts'].items()
+            (gene_id for gene_id, transcripts in list(saved_variants[0].saved_variant_json['transcripts'].items())
              if any(t['transcriptId'] == main_transcript_id for t in transcripts)), None) if main_transcript_id else None
         GeneNote.objects.create(
             note=request_json.get('note'),
@@ -326,11 +326,11 @@ def _saved_variant_genes(variants):
     for variant in variants:
         if isinstance(variant, list):
             for compound_het in variant:
-                gene_ids.update(compound_het['transcripts'].keys())
+                gene_ids.update(list(compound_het['transcripts'].keys()))
         else:
-            gene_ids.update(variant['transcripts'].keys())
+            gene_ids.update(list(variant['transcripts'].keys()))
     genes = get_genes(gene_ids, add_dbnsfp=True, add_omim=True, add_constraints=True, add_primate_ai=True)
-    for gene in genes.values():
+    for gene in list(genes.values()):
         if gene:
             gene['locusListGuids'] = []
     return genes
@@ -355,7 +355,7 @@ def _add_locus_lists(projects, variants, genes):
                 if pos and interval.start <= int(pos) <= interval.end:
                     variant['locusListGuids'].append(interval.locus_list.guid)
 
-    for locus_list_gene in LocusListGene.objects.filter(locus_list__in=locus_lists, gene_id__in=genes.keys()).prefetch_related('locus_list'):
+    for locus_list_gene in LocusListGene.objects.filter(locus_list__in=locus_lists, gene_id__in=list(genes.keys())).prefetch_related('locus_list'):
         genes[locus_list_gene.gene_id]['locusListGuids'].append(locus_list_gene.locus_list.guid)
 
     return [locus_list.guid for locus_list in locus_lists]

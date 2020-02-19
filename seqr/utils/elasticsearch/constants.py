@@ -105,8 +105,8 @@ POPULATION_FIELD_CONFIGS = {
     'Hom': {},
     'Hemi': {},
 }
-for population, pop_config in POPULATIONS.items():
-    for freq_field in POPULATION_FIELD_CONFIGS.keys():
+for population, pop_config in list(POPULATIONS.items()):
+    for freq_field in list(POPULATION_FIELD_CONFIGS.keys()):
         if freq_field not in pop_config:
             freq_suffix = freq_field
             pop_config[freq_field] = '{}_{}'.format(population, freq_suffix)
@@ -115,7 +115,7 @@ DEFAULT_POP_FIELD_CONFIG = {
     'format_value': int,
     'default_value': 0,
 }
-POPULATION_RESPONSE_FIELD_CONFIGS = {k: dict(DEFAULT_POP_FIELD_CONFIG, **v) for k, v in POPULATION_FIELD_CONFIGS.items()}
+POPULATION_RESPONSE_FIELD_CONFIGS = {k: dict(DEFAULT_POP_FIELD_CONFIG, **v) for k, v in list(POPULATION_FIELD_CONFIGS.items())}
 
 
 PATHOGENICTY_SORT_KEY = 'pathogenicity'
@@ -195,10 +195,10 @@ GENOTYPES_FIELD_KEY = 'genotypes'
 HAS_ALT_FIELD_KEYS = ['samples_num_alt_1', 'samples_num_alt_2']
 SORTED_TRANSCRIPTS_FIELD_KEY = 'sortedTranscriptConsequences'
 NESTED_FIELDS = {
-    field_name: {field: {} for field in fields} for field_name, fields in {
+    field_name: {field: {} for field in fields} for field_name, fields in list({
         'clinvar': CLINVAR_FIELDS,
         'hgmd': HGMD_FIELDS,
-    }.items()
+    }.items())
 }
 
 CORE_FIELDS_CONFIG = {
@@ -208,9 +208,9 @@ CORE_FIELDS_CONFIG = {
     'originalAltAlleles': {'format_value': lambda alleles: [a.split('-')[-1] for a in alleles], 'default_value': []},
     'ref': {},
     'rsid': {},
-    'start': {'response_key': 'pos', 'format_value': long},
+    'start': {'response_key': 'pos', 'format_value': int},
     'variantId': {},
-    'xpos': {'format_value': long},
+    'xpos': {'format_value': int},
 }
 PREDICTION_FIELDS_CONFIG = {
     'cadd_PHRED': {'response_key': 'cadd'},
@@ -238,12 +238,12 @@ GENOTYPE_FIELDS_CONFIG = {
     'num_alt': {'format_value': int, 'default_value': -1},
 }
 
-QUERY_FIELD_NAMES = CORE_FIELDS_CONFIG.keys() + PREDICTION_FIELDS_CONFIG.keys() + \
+QUERY_FIELD_NAMES = list(CORE_FIELDS_CONFIG.keys()) + list(PREDICTION_FIELDS_CONFIG.keys()) + \
                     [SORTED_TRANSCRIPTS_FIELD_KEY, GENOTYPES_FIELD_KEY] + HAS_ALT_FIELD_KEYS
-for field_name, fields in NESTED_FIELDS.items():
-    QUERY_FIELD_NAMES += ['{}_{}'.format(field_name, field) for field in fields.keys()]
-for pop_config in POPULATIONS.values():
-    for pop_field in pop_config.values():
+for field_name, fields in list(NESTED_FIELDS.items()):
+    QUERY_FIELD_NAMES += ['{}_{}'.format(field_name, field) for field in list(fields.keys())]
+for pop_config in list(POPULATIONS.values()):
+    for pop_field in list(pop_config.values()):
         if isinstance(pop_field, list):
             QUERY_FIELD_NAMES += pop_field
         else:

@@ -42,13 +42,13 @@ class LocusListAPITest(TransactionTestCase):
 
         response_json = response.json()
         locus_lists_dict = response_json['locusListsByGuid']
-        self.assertListEqual(locus_lists_dict.keys(), [LOCUS_LIST_GUID])
+        self.assertListEqual(list(locus_lists_dict.keys()), [LOCUS_LIST_GUID])
 
         locus_list = locus_lists_dict[LOCUS_LIST_GUID]
-        self.assertSetEqual(set(locus_list.keys()), LOCUS_LIST_DETAIL_FIELDS)
+        self.assertSetEqual(set(list(locus_list.keys())), LOCUS_LIST_DETAIL_FIELDS)
         self.assertSetEqual(
             {item['geneId'] for item in locus_list['items'] if item.get('geneId')},
-            set(response_json['genesById'].keys())
+            set(list(response_json['genesById'].keys()))
         )
 
     def test_create_update_and_delete_locus_list(self):
@@ -75,13 +75,13 @@ class LocusListAPITest(TransactionTestCase):
         self.assertEqual(response.status_code, 200)
         new_locus_list_response = response.json()
         self.assertEqual(len(new_locus_list_response['locusListsByGuid']), 1)
-        new_locus_list = new_locus_list_response['locusListsByGuid'].values()[0]
+        new_locus_list = list(new_locus_list_response['locusListsByGuid'].values())[0]
         self.assertEqual(new_locus_list['name'], 'new_locus_list')
         self.assertEqual(new_locus_list['isPublic'], True)
 
         self.assertSetEqual(
             {item['geneId'] for item in new_locus_list['items'] if item.get('geneId')},
-            set(new_locus_list_response['genesById'].keys())
+            set(list(new_locus_list_response['genesById'].keys()))
         )
         self.assertListEqual(
             new_locus_list['items'],
@@ -113,7 +113,7 @@ class LocusListAPITest(TransactionTestCase):
         self.assertEqual(response.status_code, 200)
         updated_locus_list_response = response.json()
         self.assertEqual(len(updated_locus_list_response['locusListsByGuid']), 1)
-        updated_locus_list = updated_locus_list_response['locusListsByGuid'].values()[0]
+        updated_locus_list = list(updated_locus_list_response['locusListsByGuid'].values())[0]
         self.assertEqual(updated_locus_list['name'], 'updated_locus_list')
         self.assertEqual(updated_locus_list['isPublic'], False)
 

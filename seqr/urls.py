@@ -278,7 +278,7 @@ urlpatterns += [url("^%(url_endpoint)s$" % locals(), main_app) for url_endpoint 
 urlpatterns += [url("^%(url_endpoint)s$" % locals(), no_login_main_app) for url_endpoint in no_login_react_app_pages]
 
 # api
-for url_endpoint, handler_function in api_endpoints.items():
+for url_endpoint, handler_function in list(api_endpoints.items()):
     urlpatterns.append( url("^api/%(url_endpoint)s$" % locals(), handler_function) )
 
 # login/ logout

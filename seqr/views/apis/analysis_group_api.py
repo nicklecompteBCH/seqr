@@ -23,7 +23,7 @@ def update_analysis_group_handler(request, project_guid, analysis_group_guid=Non
     project = get_project_and_check_permissions(project_guid, request.user, permission_level=CAN_EDIT)
 
     request_json = json.loads(request.body)
-    missing_fields = [field for field in REQUIRED_FIELDS.keys() if not request_json.get(field)]
+    missing_fields = [field for field in list(REQUIRED_FIELDS.keys()) if not request_json.get(field)]
     if missing_fields:
         return create_json_response(
             {}, status=400, reason='Missing required field(s): {missing_field_names}'.format(

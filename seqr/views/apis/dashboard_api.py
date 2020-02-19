@@ -29,7 +29,7 @@ def dashboard_page_data(request):
        }
     """
     projects_by_guid = _get_projects_json(request.user)
-    project_categories_by_guid = _retrieve_project_categories_by_guid(projects_by_guid.keys())
+    project_categories_by_guid = _retrieve_project_categories_by_guid(list(projects_by_guid.keys()))
 
     json_response = {
         'projectsByGuid': projects_by_guid,
@@ -106,7 +106,7 @@ def export_projects_table_handler(request):
     file_format = request.GET.get('file_format', 'tsv')
 
     projects_by_guid = _get_projects_json(request.user)
-    project_categories_by_guid = _retrieve_project_categories_by_guid(projects_by_guid.keys())
+    project_categories_by_guid = _retrieve_project_categories_by_guid(list(projects_by_guid.keys()))
 
     header = [
         'Project',
@@ -124,7 +124,7 @@ def export_projects_table_handler(request):
     header.extend([label for key, label in Family.ANALYSIS_STATUS_CHOICES if key != 'S'])
 
     rows = []
-    for project in sorted(projects_by_guid.values(), key=lambda project: project.get('name') or project.get('deprecatedProjectId')):
+    for project in sorted(list(projects_by_guid.values()), key=lambda project: project.get('name') or project.get('deprecatedProjectId')):
         project_categories = ', '.join(
             [project_categories_by_guid[category_guid]['name'] for category_guid in project.get('projectCategoryGuids')]
         )

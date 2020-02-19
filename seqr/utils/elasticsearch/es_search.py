@@ -45,11 +45,11 @@ class EsSearch(object):
             raise InvalidIndexException('No es index found')
 
         if skip_unaffected_families:
-            for index, family_samples in self.samples_by_family_index.items():
+            for index, family_samples in list(self.samples_by_family_index.items()):
                 index_skipped_families = []
-                for family_guid, samples_by_id in family_samples.items():
+                for family_guid, samples_by_id in list(family_samples.items()):
                     if not any(s.individual.affected == Individual.AFFECTED_STATUS_AFFECTED
-                               for s in samples_by_id.values()):
+                               for s in list(samples_by_id.values()): # what is this supposed to be????
                         index_skipped_families.append(family_guid)
 
                 for family_guid in index_skipped_families:
@@ -88,7 +88,7 @@ class EsSearch(object):
             cache_key = 'index_alias__{}'.format(alias)
             if safe_redis_get_json(cache_key) != self.index_name:
                 self._client.indices.update_aliases(body={'actions': [
-                    {'add': {'indices': self.samples_by_family_index.keys(), 'alias': alias}}
+                    {'add': {'indices': list(self.samples_by_family_index.keys()), 'alias': alias}}
                 ]})
                 safe_redis_set_json(cache_key, self.index_name)
             self.index_name = alias
@@ -104,11 +104,10 @@ class EsSearch(object):
 
     def filter_by_frequency(self, frequencies):
         q = Q()
-        for pop, freqs in frequencies.items():
+        for pop, freqs in list(frequencies.items()):
             if freqs.get('af') is not None:
                 filter_field = next(
-                    (field_key for field_key in POPULATIONS[pop]['filter_AF']
-                     if all(field_key in index_metadata['fields'] for index_metadata in self.index_metadata.values())),
+                    (field_key for field_key in POPULATIONS[pop]['filter_AF'] if all(field_key in index_metadata['fields'] for index_metadata in list(self.index_metadata.values()))),
                     POPULATIONS[pop]['AF'])
                 q &= _pop_freq_filter(filter_field, freqs['af'])
             elif freqs.get('ac') is not None:
@@ -182,7 +181,7 @@ class EsSearch(object):
 
         for index, family_samples_by_id in self.samples_by_family_index.items():
             if not inheritance and not quality_filter['min_ab'] and not quality_filter['min_gq']:
-                search_sample_count = sum(len(samples) for samples in family_samples_by_id.values())
+                search_sample_count = sum(len(samples) for samples in list(family_samples_by_id.values()))
                 index_sample_count = Sample.objects.filter(elasticsearch_index=index, is_active=True).count()
                 if search_sample_count == index_sample_count:
                     # If searching across all families in an index with no inheritance mode we do not need to explicitly
@@ -216,7 +215,7 @@ class EsSearch(object):
                 self._index_searches[index].append(compound_het_search)
 
     def search(self,  **kwargs):
-        indices = self.samples_by_family_index.keys()
+        indices = list(self.samples_by_family_index.keys())
 
         logger.info('Searching in elasticsearch indices: {}'.format(', '.join(indices)))
 
@@ -286,7 +285,7 @@ class EsSearch(object):
         return variant_results[:num_results]
 
     def _execute_multi_search(self, **kwargs):
-        indices = self.samples_by_family_index.keys()
+        indices = list(self.samples_by_family_index.keys())
 
         if self.CACHED_COUNTS_KEY and not self.previous_search_results.get(self.CACHED_COUNTS_KEY):
             self.previous_search_results[self.CACHED_COUNTS_KEY] = {}
@@ -369,14 +368,14 @@ class EsSearch(object):
         if hasattr(raw_hit.meta, 'matched_queries'):
             family_guids = list(raw_hit.meta.matched_queries)
         elif self._return_all_queried_families:
-            family_guids = index_family_samples.keys()
+            family_guids = list(index_family_samples.keys())
         else:
             # Searches for all inheritance and all families do not filter on inheritance so there are no matched_queries
             alt_allele_samples = set()
             for alt_samples_field in HAS_ALT_FIELD_KEYS:
                 alt_allele_samples.update(hit[alt_samples_field])
-            family_guids = [family_guid for family_guid, samples_by_id in index_family_samples.items()
-                            if any(sample_id in alt_allele_samples for sample_id in samples_by_id.keys())]
+            family_guids = [family_guid for family_guid, samples_by_id in list(index_family_samples.items())
+                            if any(sample_id in alt_allele_samples for sample_id in list(samples_by_id.keys()))]
 
         genotypes = {}
         for family_guid in family_guids:
@@ -408,11 +407,11 @@ class EsSearch(object):
                 existing_fields=self.index_metadata[index_name]['fields'],
                 get_addl_fields=lambda field: pop_config[field] if isinstance(pop_config[field], list) else [pop_config[field]],
             )
-            for population, pop_config in POPULATIONS.items()
+            for population, pop_config in list(POPULATIONS.items())
         }
 
         sorted_transcripts = [
-            {_to_camel_case(k): v for k, v in transcript.to_dict().items()}
+            {_to_camel_case(k): v for k, v in list(transcript.to_dict().items())}
             for transcript in hit[SORTED_TRANSCRIPTS_FIELD_KEY] or []
         ]
         transcripts = defaultdict(list)
@@ -448,9 +447,9 @@ class EsSearch(object):
             raise Exception('This search returned too many compound heterozygous variants. Please add stricter filters')
 
         family_unaffected_individual_guids = {
-            family_guid: {individual_guid for individual_guid, affected_status in individual_affected_status.items() if
+            family_guid: {individual_guid for individual_guid, affected_status in list(individual_affected_status.items()) if
                           affected_status == Individual.AFFECTED_STATUS_UNAFFECTED}
-            for family_guid, individual_affected_status in self._family_individual_affected_status.items()
+            for family_guid, individual_affected_status in list(self._family_individual_affected_status.items())
         }
 
         compound_het_pairs_by_gene = {}
@@ -495,18 +494,18 @@ class EsSearch(object):
             if gene_compound_het_pairs:
                 compound_het_pairs_by_gene[gene_id] = gene_compound_het_pairs
 
-        total_compound_het_results = sum(len(compound_het_pairs) for compound_het_pairs in compound_het_pairs_by_gene.values())
+        total_compound_het_results = sum(len(compound_het_pairs) for compound_het_pairs in list(compound_het_pairs_by_gene.values()))
         logger.info('Total compound het hits: {}'.format(total_compound_het_results))
 
         compound_het_results = []
-        for k, compound_het_pairs in compound_het_pairs_by_gene.items():
+        for k, compound_het_pairs in list(compound_het_pairs_by_gene.items()):
             compound_het_results.extend([{k: compound_het_pair} for compound_het_pair in compound_het_pairs])
         return compound_het_results, total_compound_het_results
 
     def _is_primary_compound_het_gene(self, gene_id, gene_variants, compound_het_pairs_by_gene):
         primary_genes = set()
         for variant in gene_variants:
-            for gene, transcripts in variant['transcripts'].items():
+            for gene, transcripts in list(variant['transcripts'].items()):
                 if any(t['transcriptId'] == variant['mainTranscriptId'] for t in transcripts):
                     primary_genes.add(gene)
                     break
@@ -533,7 +532,7 @@ class EsSearch(object):
         return True
 
     def _filter_invalid_family_compound_hets(self, gene_id, family_compound_het_pairs, family_unaffected_individual_guids):
-        for family_guid, variants in family_compound_het_pairs.items():
+        for family_guid, variants in list(family_compound_het_pairs.items()):
             unaffected_individuals_num_alts = [
                 [variant['genotypes'].get(individual_guid, {}).get('numAlt') for variant in variants]
                 for individual_guid in family_unaffected_individual_guids.get(family_guid, [])]
@@ -662,7 +661,7 @@ class EsSearch(object):
                 results[gene] = [compound_het_pair]
 
         deduplicated_results = []
-        for gene, compound_het_pairs in results.items():
+        for gene, compound_het_pairs in list(results.items()):
             deduplicated_results += [{gene: ch_pair} for ch_pair in compound_het_pairs]
 
         self.previous_search_results['duplicate_doc_count'] = duplicates + self.previous_search_results.get('duplicate_doc_count', 0)
@@ -686,7 +685,7 @@ class EsSearch(object):
         num_compound_hets = 0
         num_single_variants = 0
         for variants_group in grouped_variants:
-            variants = variants_group.values()[0]
+            variants = list(variants_group.values())[0]
 
             if loaded_result_count != self.previous_search_results['total_results']:
                 self.previous_search_results['grouped_results'].append(variants_group)
@@ -746,7 +745,7 @@ class EsSearch(object):
     def _delete_long_running_tasks(self):
         search_tasks = self._client.tasks.list(actions='*search', group_by='parents')
         canceled = 0
-        for parent_id, task in search_tasks['tasks'].items():
+        for parent_id, task in list(search_tasks['tasks'].items()):
             if task['running_time_in_nanos'] > 10 ** 11:
                 canceled += 1
                 self._client.tasks.cancel(parent_task_id=parent_id)
@@ -812,13 +811,13 @@ def _genotype_inheritance_filter(inheritance_mode, inheritance_filter, family_sa
 
     genotypes_q = None
     affected_status = {}
-    for family_guid in sorted(family_samples_by_id.keys()):
+    for family_guid in sorted(list(family_samples_by_id.keys())):
         samples_by_id = family_samples_by_id[family_guid]
         # Filter samples by quality
         quality_q = None
         if quality_filter.get('min_ab') or quality_filter.get('min_gq'):
             quality_q = Q()
-            for sample_id in samples_by_id.keys():
+            for sample_id in list(samples_by_id.keys()):
                 if quality_filter['min_ab']:
                     q = _build_or_filter('term', [
                         {'samples_ab_{}_to_{}'.format(i, i + 5): sample_id} for i in range(0, quality_filter['min_ab'], 5)
@@ -843,7 +842,7 @@ def _genotype_inheritance_filter(inheritance_mode, inheritance_filter, family_sa
                 family_samples_q |= x_linked_q
         else:
             # If no inheritance specified only return variants where at least one of the requested samples has an alt allele
-            sample_ids = samples_by_id.keys()
+            sample_ids = list(samples_by_id.keys())
             family_samples_q = Q('terms', samples_num_alt_1=sample_ids) | Q('terms', samples_num_alt_2=sample_ids)
 
         sample_queries = [family_samples_q]
@@ -862,7 +861,7 @@ def _genotype_inheritance_filter(inheritance_mode, inheritance_filter, family_sa
 def _family_genotype_inheritance_filter(inheritance_mode, inheritance_filter, samples_by_id):
     samples_q = None
 
-    individuals = [sample.individual for sample in samples_by_id.values()]
+    individuals = [sample.individual for sample in list(samples_by_id.values())]
 
     individual_genotype_filter = inheritance_filter.get('genotype') or {}
     individual_affected_status = inheritance_filter.get('affected') or {}
@@ -877,7 +876,7 @@ def _family_genotype_inheritance_filter(inheritance_mode, inheritance_filter, sa
                     and individual.sex == Individual.SEX_MALE:
                 individual_genotype_filter[individual.guid] = REF_REF
 
-    for sample_id, sample in samples_by_id.items():
+    for sample_id, sample in list(samples_by_id.items()):
 
         individual_guid = sample.individual.guid
         affected = individual_affected_status[individual_guid]
@@ -914,7 +913,7 @@ def _location_filter(genes, intervals, rs_ids, variant_ids, location_filter):
         } for interval in intervals])
 
     if genes:
-        gene_q = Q('terms', geneIds=genes.keys())
+        gene_q = Q('terms', geneIds=list(genes.keys()))
         if q:
             q |= gene_q
         else:
@@ -963,7 +962,7 @@ def _pathogenicity_filter(pathogenicity):
 
 
 def _annotations_filter(annotations):
-    vep_consequences = [ann for anns in annotations.values() for ann in anns]
+    vep_consequences = [ann for anns in list(annotations.values()) for ann in anns]
 
     consequences_filter = Q('terms', transcriptConsequenceTerms=vep_consequences)
 
@@ -992,7 +991,7 @@ def _get_sort(sort_key):
 
     # Add parameters to scripts
     if len(sorts) and isinstance(sorts[0], dict) and sorts[0].get('_script', {}).get('script', {}).get('params'):
-        for key, val_func in sorts[0]['_script']['script']['params'].items():
+        for key, val_func in list(sorts[0]['_script']['script']['params'].items()):
             if not (isinstance(val_func, dict) or isinstance(val_func, list)):
                 sorts[0]['_script']['script']['params'][key] = val_func()
 
@@ -1025,7 +1024,7 @@ def _get_compound_het_page(grouped_variants, start_index, end_index):
 
 
 def _parse_es_sort(sort, sort_config):
-    if hasattr(sort_config, 'values') and any(cfg.get('order') == 'desc' for cfg in sort_config.values()):
+    if hasattr(sort_config, 'values') and any(cfg.get('order') == 'desc' for cfg in list(sort_config.values())):
         if sort == 'Infinity':
             sort = -1
         elif sort == '-Infinity' or sort is None:
@@ -1053,7 +1052,7 @@ def _get_field_values(hit, field_configs, format_response_key=_to_camel_case, ge
             existing_fields=existing_fields,
             **field_config
         )
-        for field, field_config in field_configs.items()
+        for field, field_config in list(field_configs.items()) # what...
     }
 
 

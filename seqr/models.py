@@ -66,7 +66,7 @@ class ModelWithGUID(models.Model):
 
     def json(self):
         """Utility method that returns a json {field-name: value-as-string} mapping for all fields."""
-        return {k: v for k, v in self.__dict__.items() if not k.startswith('_')}
+        return {k: v for k, v in list(self.__dict__.items()) if not k.startswith('_')}
 
     def save(self, *args, **kwargs):
         """Create a GUID at object creation time."""

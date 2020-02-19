@@ -13,7 +13,7 @@ class EsGeneAggSearch(EsSearch):
 
     def aggregate_by_gene(self):
         searches = {self._search}
-        for index_searches in self._index_searches.values():
+        for index_searches in list(self._index_searches.values()):
             searches.update(index_searches)
 
         for search in searches:
@@ -29,11 +29,11 @@ class EsGeneAggSearch(EsSearch):
                 )
 
     def _should_execute_single_search(self, page=1, num_results=100):
-        indices = self.samples_by_family_index.keys()
+        indices = list(self.samples_by_family_index.keys())
         return len(indices) == 1 and len(self._index_searches.get(indices[0], [])) <= 1, {}
 
     def _process_single_search_response(self, parsed_response, page=1, num_results=100, deduplicate=False, **kwargs):
-        gene_aggs = {gene_id: {k: counts[k] for k in ['total', 'families']} for gene_id, counts in parsed_response.items()}
+        gene_aggs = {gene_id: {k: counts[k] for k in ['total', 'families']} for gene_id, counts in list(parsed_response.items())}
         self._add_compound_hets(gene_aggs)
 
         self.previous_search_results['gene_aggs'] = gene_aggs
@@ -43,13 +43,13 @@ class EsGeneAggSearch(EsSearch):
     def _process_multi_search_responses(self, parsed_responses, page=1, num_results=100):
         gene_aggs = parsed_responses[0] if parsed_responses else {}
         for response in parsed_responses[1:]:
-            for gene_id, count_details in response.items():
+            for gene_id, count_details in list(response.items()):
                 gene_aggs[gene_id]['sample_ids'].update(count_details['sample_ids'])
                 gene_aggs[gene_id]['families'].update(count_details['families'])
 
         gene_aggs = {
             gene_id: {'total': len(counts['sample_ids']), 'families': counts['families']}
-            for gene_id, counts in gene_aggs.items()
+            for gene_id, counts in list(gene_aggs.items())
         }
 
         self._add_compound_hets(gene_aggs)
@@ -72,9 +72,9 @@ class EsGeneAggSearch(EsSearch):
                         gene_counts[gene_id]['families'][family_guid] += 1
             else:
                 families_by_sample = {}
-                for index_samples_by_family in self.samples_by_family_index.values():
-                    for family_guid, samples_by_id in index_samples_by_family.items():
-                        for sample_id in samples_by_id.keys():
+                for index_samples_by_family in list(self.samples_by_family_index.values()):
+                    for family_guid, samples_by_id in list(index_samples_by_family.items()):
+                        for sample_id in list(samples_by_id.keys()):
                             families_by_sample[sample_id] = family_guid
 
                 for sample_agg in gene_agg['samples_num_alt_1']['buckets']:
@@ -91,8 +91,8 @@ class EsGeneAggSearch(EsSearch):
         loaded_compound_hets = self.previous_search_results.get('grouped_results', []) + \
                                self.previous_search_results.get('compound_het_results', [])
         for group in loaded_compound_hets:
-            variants = group.values()[0]
-            gene_id = group.keys()[0]
+            variants = list(group.values())[0]
+            gene_id = list(group.keys())[0]
             if gene_id and gene_id != 'null':
                 gene_counts[gene_id]['total'] += len(variants)
                 for family_guid in variants[0]['familyGuids']:
@@ -110,7 +110,7 @@ class EsGeneAggSearch(EsSearch):
                 if len(previous_search_results['all_results']) == total_results:
                     for var in previous_search_results['all_results']:
                         gene_id = next((
-                            gene_id for gene_id, transcripts in var['transcripts'].items()
+                            gene_id for gene_id, transcripts in list(var['transcripts'].items())
                             if any(t['transcriptId'] == var['mainTranscriptId'] for t in transcripts)
                         ), None) if var['mainTranscriptId'] else None
                         if gene_id:
@@ -119,14 +119,14 @@ class EsGeneAggSearch(EsSearch):
                                 gene_aggs[gene_id]['families'][family_guid] += 1
                     return gene_aggs, {}
             elif 'grouped_results' in previous_search_results:
-                loaded = sum(counts.get('loaded', 0) for counts in previous_search_results.get('loaded_variant_counts', {}).values())
+                loaded = sum(counts.get('loaded', 0) for counts in list(previous_search_results.get('loaded_variant_counts', {}).values()))
                 if loaded == total_results:
                     for group in previous_search_results['grouped_results']:
-                        variants = group.values()[0]
-                        gene_id = group.keys()[0]
+                        variants = list(group.values())[0]
+                        gene_id = list(group.keys())[0]
                         if not gene_id or gene_id == 'null':
                             gene_id = next((
-                                gene_id for gene_id, transcripts in variants[0]['transcripts'].items()
+                                gene_id for gene_id, transcripts in list(variants[0]['transcripts'].items())
                                 if any(t['transcriptId'] == variants[0]['mainTranscriptId'] for t in transcripts)
                             ), None) if variants[0]['mainTranscriptId'] else None
                         if gene_id:

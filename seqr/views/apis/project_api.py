@@ -148,13 +148,13 @@ def project_page_data(request, project_guid):
 
     project_json = _get_json_for_project(project, request.user)
     project_json['collaborators'] = get_json_for_project_collaborator_list(project)
-    project_json['locusListGuids'] = response['locusListsByGuid'].keys()
+    project_json['locusListGuids'] = list(response['locusListsByGuid'].keys())
     project_json['detailsLoaded'] = True
     project_json.update(_get_json_for_variant_tag_types(project))
 
     gene_ids = set()
     for tag in project_json['discoveryTags']:
-        gene_ids.update(tag['transcripts'].keys())
+        gene_ids.update(list(tag['transcripts'].keys()))
 
     response.update({
         'projectsByGuid': {project_guid: project_json},
@@ -193,7 +193,7 @@ def export_project_individuals_handler(request, project_guid):
 def _get_project_child_entities(project, user):
     families_by_guid = _retrieve_families(project.guid, user)
     individuals_by_guid, individual_models = _retrieve_individuals(project.guid, user)
-    for individual_guid, individual in individuals_by_guid.items():
+    for individual_guid, individual in list(individuals_by_guid.items()):
         families_by_guid[individual['familyGuid']]['individualGuids'].add(individual_guid)
     samples_by_guid = _retrieve_samples(project.guid, individuals_by_guid, individual_models)
     mme_submissions_by_guid = _retrieve_mme_submissions(individuals_by_guid, individual_models)

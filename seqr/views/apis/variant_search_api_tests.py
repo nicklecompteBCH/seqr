@@ -242,7 +242,7 @@ class VariantSearchAPITest(TestCase):
         self.assertTrue(PROJECT_GUID in response_json['projectsByGuid'])
         self.assertTrue('F000001_1' in response_json['familiesByGuid'])
         self.assertTrue('AG0000183_test_group' in response_json['analysisGroupsByGuid'])
-        self.assertListEqual(response_json['projectCategoriesByGuid'].keys(), ['PC000003_test_category_name'])
+        self.assertListEqual(list(response_json['projectCategoriesByGuid'].keys()), ['PC000003_test_category_name'])
 
         # Test search hash context
         response = self.client.post(search_context_url, content_type='application/json', data=json.dumps(
@@ -292,15 +292,15 @@ class VariantSearchAPITest(TestCase):
         self.assertEqual(response.status_code, 200)
         response_json = response.json()
         self.assertSetEqual(
-            set(response_json.keys()),
+            set(list(response_json.keys())),
             {'searchedVariants', 'savedVariantsByGuid', 'genesById', 'projectsByGuid', 'familiesByGuid',
              'individualsByGuid', 'samplesByGuid', 'locusListsByGuid', 'analysisGroupsByGuid', 'variantTagsByGuid',
              'variantNotesByGuid', 'variantFunctionalDataByGuid'}
         )
 
         self.assertListEqual(response_json['searchedVariants'], EXPECTED_VARIANTS[:1])
-        self.assertSetEqual(set(response_json['savedVariantsByGuid'].keys()), {'SV0000001_2103343353_r0390_100'})
-        self.assertSetEqual(set(response_json['genesById'].keys()), {'ENSG00000227232', 'ENSG00000268903'})
+        self.assertSetEqual(set(list(response_json['savedVariantsByGuid'].keys())), {'SV0000001_2103343353_r0390_100'})
+        self.assertSetEqual(set(list(response_json['genesById'].keys())), {'ENSG00000227232', 'ENSG00000268903'})
         self.assertTrue('F000001_1' in response_json['familiesByGuid'])
 
     def test_saved_search(self):
@@ -330,7 +330,7 @@ class VariantSearchAPITest(TestCase):
         self.assertEqual(response.status_code, 200)
         saved_searches = response.json()['savedSearchesByGuid']
         self.assertEqual(len(saved_searches), 1)
-        search_guid = saved_searches.keys()[0]
+        search_guid = list(saved_searches.keys())[0]
         self.assertDictEqual(saved_searches[search_guid], {
             'savedSearchGuid': search_guid, 'name': 'Test Search', 'search': SEARCH, 'createdById': 10,
         })
@@ -356,7 +356,7 @@ class VariantSearchAPITest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json()['savedSearchesByGuid']), 3)
 
-        global_saved_search_guid = response.json()['savedSearchesByGuid'].keys()[0]
+        global_saved_search_guid = list(response.json()['savedSearchesByGuid'].keys())[0]
 
         update_saved_search_url = reverse(update_saved_search_handler, args=[global_saved_search_guid])
         response = self.client.post(update_saved_search_url, content_type='application/json', data=json.dumps(body))

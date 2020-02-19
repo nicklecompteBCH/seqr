@@ -133,7 +133,7 @@ class DatasetAPITest(TransactionTestCase):
             'I000003_na19679': {'sampleGuids': [existing_sample_guid]},
         })
         self.assertDictEqual(response_json['familiesByGuid'], {'F000001_1': {'analysisStatus': 'I'}})
-        updated_samples = [sample for sample_guid, sample in response_json['samplesByGuid'].items() if sample_guid != existing_old_index_sample_guid]
+        updated_samples = [sample for sample_guid, sample in list(response_json['samplesByGuid'].items()) if sample_guid != existing_old_index_sample_guid]
         self.assertSetEqual(
             {'test_data.vds'},
             {sample['datasetFilePath'] for sample in
@@ -249,9 +249,9 @@ class DatasetAPITest(TransactionTestCase):
         self.assertEqual(response.status_code, 200)
         response_json = response.json()
 
-        self.assertSetEqual(set(response_json.keys()), {'samplesByGuid', 'individualsByGuid'})
+        self.assertSetEqual(set(list(response_json.keys())), {'samplesByGuid', 'individualsByGuid'})
         self.assertEqual(len(response_json['samplesByGuid']), 1)
-        sample_guid = response_json['samplesByGuid'].keys()[0]
+        sample_guid = list(response_json['samplesByGuid'].keys())[0]
         self.assertDictEqual(response_json['samplesByGuid'][sample_guid], {
             'projectGuid': PROJECT_GUID, 'individualGuid': 'I000003_na19679', 'sampleGuid': sample_guid,
             'createdDate': mock.ANY, 'sampleType': 'WGS', 'sampleId': 'NA19679', 'isActive': True,
@@ -259,7 +259,7 @@ class DatasetAPITest(TransactionTestCase):
             'datasetType': 'ALIGN'})
         today = datetime.now().strftime('%Y-%m-%d')
         self.assertTrue(response_json['samplesByGuid'][sample_guid]['loadedDate'].startswith(today))
-        self.assertListEqual(response_json['individualsByGuid'].keys(), ['I000003_na19679'])
+        self.assertListEqual(list(response_json['individualsByGuid'].keys()), ['I000003_na19679'])
         self.assertSetEqual(
             set(response_json['individualsByGuid']['I000003_na19679']['sampleGuids']),
             {'S000131_na19679', sample_guid}

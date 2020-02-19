@@ -24,7 +24,7 @@ class UsersAPITest(TransactionTestCase):
         response = self.client.get(get_all_staff_url)
         self.assertEqual(response.status_code, 200)
         response_json = response.json()
-        all_staff_usernames = response_json.keys()
+        all_staff_usernames = list(response_json.keys())
         first_staff_user = response_json[all_staff_usernames[0]]
 
         self.assertSetEqual(

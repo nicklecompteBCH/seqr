@@ -133,7 +133,7 @@ def receive_hpo_table_handler(request, project_guid):
     if invalid_hpo_term_individuals:
         warnings.append(
             "The following HPO terms were not found in seqr's HPO data and will not be added: {}".format(
-                '; '.join(['{} ({})'.format(term, ', '.join(individuals)) for term, individuals in invalid_hpo_term_individuals.items()])
+                '; '.join(['{} ({})'.format(term, ', '.join(individuals)) for term, individuals in list(invalid_hpo_term_individuals.items())])
             )
         )
     if missing_individuals:
@@ -184,7 +184,7 @@ def _process_hpo_records(records, filename=''):
         raise ValueError('Invalid header, missing individual id column')
 
     row_dicts = [{column: row[index] if isinstance(index, int) else next((row[i] for i in index if row[i]), None)
-                  for column, index in column_map.items()} for row in records[1:]]
+                  for column, index in list(column_map.items())} for row in records[1:]]
     if FEATURES_COLUMN in column_map:
         return row_dicts
 
@@ -202,7 +202,7 @@ def _process_hpo_records(records, filename=''):
                     _hpo_term_item(row[HPO_TERM_NUMBER_COLUMN], row.get(AFFECTED_COLUMN, 'yes'))
                 )
         return [{FAMILY_ID_COLUMN: family_id, INDIVIDUAL_ID_COLUMN: individual_id, FEATURES_COLUMN: features}
-                for (family_id, individual_id), features in aggregate_rows.items()]
+                for (family_id, individual_id), features in list(aggregate_rows.items())]
 
     raise ValueError('Invalid header, missing hpo terms columns')
 
@@ -417,7 +417,7 @@ def proxy_to_phenotips(request):
     # along the way, and don't proxy correctly. Using a Session object as below to store the cookies
     # provides a work-around.
     phenotips_session = requests.Session()
-    for key, value in request.COOKIES.items():
+    for key, value in list(request.COOKIES.items()):
         phenotips_session.cookies.set(key, value)
 
     http_response = proxy_request(request, url, data=request.body, session=phenotips_session,

@@ -44,11 +44,11 @@ class Command(BaseCommand):
 
         logger.info("Done")
         logger.info("Summary: ")
-        for k, v in success.items():
+        for k, v in list(success.items()):
             if v > 0:
                 logger.info("  {0}: Updated {1} variants".format(k, v))
         if len(error):
             logger.info("{0} failed projects".format(len(error)))
-        for k, v in error.items():
+        for k, v in list(error.items()):
             logger.info("  {0}: {1}".format(k, v))
 

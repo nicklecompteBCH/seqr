@@ -80,14 +80,14 @@ def add_variants_dataset_handler(request, project_guid):
                 'Matches not found for ES sample ids: {}. Uploading a mapping file for these samples, or select the "Ignore extra samples in callset" checkbox to ignore.'.format(
                     ", ".join(unmatched_samples)))
 
-        prefetch_related_objects(matched_sample_id_to_sample_record.values(), 'individual__family')
-        included_families = {sample.individual.family for sample in matched_sample_id_to_sample_record.values()}
+        prefetch_related_objects(list(matched_sample_id_to_sample_record.values()), 'individual__family')
+        included_families = {sample.individual.family for sample in list(matched_sample_id_to_sample_record.values())}
 
         missing_individuals = Individual.objects.filter(
             family__in=included_families,
             sample__is_active=True,
             sample__dataset_type=Sample.DATASET_TYPE_VARIANT_CALLS,
-        ).exclude(sample__in=matched_sample_id_to_sample_record.values()).select_related('family')
+        ).exclude(sample__in=list(matched_sample_id_to_sample_record.values())).select_related('family')
         missing_family_individuals = defaultdict(list)
         for individual in missing_individuals:
             missing_family_individuals[individual.family].append(individual)
@@ -97,7 +97,7 @@ def add_variants_dataset_handler(request, project_guid):
                 'The following families are included in the callset but are missing some family members: {}.'.format(
                     ', '.join(sorted(
                         ['{} ({})'.format(family.family_id, ', '.join([i.individual_id for i in missing_indivs]))
-                         for family, missing_indivs in missing_family_individuals.items()]
+                         for family, missing_indivs in list(missing_family_individuals.items())]
                     ))))
 
         inactivate_sample_guids = _update_variant_samples(
@@ -161,8 +161,8 @@ def receive_alignment_table_handler(request, project_guid):
     try:
         uploaded_file_id, filename, individual_dataset_mapping = save_uploaded_file(request, process_records=_process_alignment_records)
 
-        matched_individuals = Individual.objects.filter(family__project=project, individual_id__in=individual_dataset_mapping.keys())
-        unmatched_individuals = set(individual_dataset_mapping.keys()) - {i.individual_id for i in matched_individuals}
+        matched_individuals = Individual.objects.filter(family__project=project, individual_id__in=list(individual_dataset_mapping.keys()))
+        unmatched_individuals = set(list(individual_dataset_mapping.keys())) - {i.individual_id for i in matched_individuals}
         if len(unmatched_individuals) > 0:
             raise Exception('The following Individual IDs do not exist: {}'.format(", ".join(unmatched_individuals)))
 
@@ -266,7 +266,7 @@ def update_individual_alignment_sample(request, individual_guid):
 
 def _update_variant_samples(matched_sample_id_to_sample_record, elasticsearch_index, dataset_path):
     loaded_date = timezone.now()
-    updated_samples = [sample.id for sample in matched_sample_id_to_sample_record.values()]
+    updated_samples = [sample.id for sample in list(matched_sample_id_to_sample_record.values())]
 
     samples_to_activate = Sample.objects.filter(id__in=updated_samples, is_active=False)
     activated_sample_ids = [sample.id for sample in samples_to_activate]
@@ -281,7 +281,7 @@ def _update_variant_samples(matched_sample_id_to_sample_record, elasticsearch_in
     })
 
     inactivate_samples = Sample.objects.filter(
-        individual_id__in={sample.individual_id for sample in matched_sample_id_to_sample_record.values()},
+        individual_id__in={sample.individual_id for sample in list(matched_sample_id_to_sample_record.values())},
         dataset_type=Sample.DATASET_TYPE_VARIANT_CALLS,
         is_active=True,
     ).exclude(id__in=updated_samples)
@@ -292,7 +292,7 @@ def _update_variant_samples(matched_sample_id_to_sample_record, elasticsearch_in
 
 
 def _get_samples_json(matched_sample_id_to_sample_record, inactivate_sample_guids, project_guid):
-    updated_sample_json = get_json_for_samples(matched_sample_id_to_sample_record.values(), project_guid=project_guid)
+    updated_sample_json = get_json_for_samples(list(matched_sample_id_to_sample_record.values()), project_guid=project_guid)
     sample_response = {sample_guid: {'isActive': False} for sample_guid in inactivate_sample_guids}
     sample_response.update({s['sampleGuid']: s for s in updated_sample_json})
     response = {

@@ -15,9 +15,9 @@ class DashboardPageTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
         response_json = response.json()
-        self.assertSetEqual(set(response_json.keys()), {'projectsByGuid', 'projectCategoriesByGuid'})
+        self.assertSetEqual(set(list(response_json.keys())), {'projectsByGuid', 'projectCategoriesByGuid'})
         self.assertSetEqual(
-            set(response_json['projectCategoriesByGuid'].values()[0].keys()),
+            set(list(list(response_json['projectCategoriesByGuid'].values())[0].keys())),
             {'created_by_id', 'created_date', 'guid', 'id', 'last_modified_date', 'name'}
         )
         self.assertSetEqual(

@@ -50,7 +50,7 @@ def _get_matching_objects(query, projects, object_cls, filter_fields, object_fie
     results = [{
         'key': obj.guid,
         'title': get_title(obj)[:MAX_STRING_LENGTH],
-        'description': u'({})'.format(get_description(obj)) if get_description else '',
+        'description': '({})'.format(get_description(obj)) if get_description else '',
         'href': get_href(obj),
     } for obj in matching_objects[:MAX_RESULTS_PER_CATEGORY]]
 
@@ -101,7 +101,7 @@ def _get_matching_individuals(query, projects):
         ],
         get_title=lambda i: i.display_name or i.individual_id,
         get_href=lambda i: '/project/{}/family_page/{}'.format(i.family.project.guid, i.family.guid),
-        get_description=lambda i: u'{}: family {}'.format(i.family.project.name, (i.family.display_name or i.family.family_id)),
+        get_description=lambda i: '{}: family {}'.format(i.family.project.name, (i.family.display_name or i.family.family_id)),
         project_field='family__project')
 
 
@@ -153,7 +153,7 @@ CATEGORY_MAP = {
     'genes': _get_matching_genes,
     'project_groups': _get_matching_project_groups,
 }
-DEFAULT_CATEGORIES = [k for k in CATEGORY_MAP.keys() if k != 'project_groups']
+DEFAULT_CATEGORIES = [k for k in list(CATEGORY_MAP.keys()) if k != 'project_groups']
 
 
 @login_required(login_url=API_LOGIN_REQUIRED_URL)
@@ -177,4 +177,4 @@ def awesomebar_autocomplete_handler(request):
         for category in categories
     }
 
-    return create_json_response({'matches': {k: v for k, v in results.items() if v['results']}})
+    return create_json_response({'matches': {k: v for k, v in list(results.items()) if v['results']}})

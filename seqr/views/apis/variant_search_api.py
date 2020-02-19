@@ -221,7 +221,7 @@ VARIANT_FAMILY_EXPORT_DATA = [
         sorted(tags or [], key=lambda tag: tag['lastModifiedDate'] or timezone.now(), reverse=True)
     ])},
     {'header': 'notes', 'process': lambda notes: '|'.join([
-        u'{} ({})'.format(note['note'].replace('\n', ' '), note['createdBy']) for note in
+        '{} ({})'.format(note['note'].replace('\n', ' '), note['createdBy']) for note in
         sorted(notes or [], key=lambda note: note['lastModifiedDate'] or timezone.now(), reverse=True)
     ])},
 ]
@@ -236,7 +236,7 @@ def get_variant_gene_breakdown(request, search_hash):
     gene_counts = get_es_variant_gene_counts(results_model)
     return create_json_response({
         'searchGeneBreakdown': {search_hash: gene_counts},
-        'genesById': get_genes(gene_counts.keys(), add_omim=True, add_constraints=True),
+        'genesById': get_genes(list(gene_counts.keys()), add_omim=True, add_constraints=True),
     })
 
 
@@ -266,11 +266,11 @@ def export_variants_handler(request, search_hash):
             variant_guid = variants_to_saved_variants.get(variant['variantId'], {}).get(family_guid, '')
             family_tags = {
                 'family_id': family_ids_by_guid.get(family_guid),
-                'tags': [tag for tag in json['variantTagsByGuid'].values() if variant_guid in tag['variantGuids']],
-                'notes': [note for note in json['variantNotesByGuid'].values() if variant_guid in note['variantGuids']],
+                'tags': [tag for tag in list(json['variantTagsByGuid'].values()) if variant_guid in tag['variantGuids']],
+                'notes': [note for note in list(json['variantNotesByGuid'].values()) if variant_guid in note['variantGuids']],
             }
             row += [_get_field_value(family_tags, config) for config in VARIANT_FAMILY_EXPORT_DATA]
-        genotypes = variant['genotypes'].values()
+        genotypes = list(variant['genotypes'].values())
         for i in range(max_samples_per_variant):
             if i < len(genotypes):
                 row.append('{sampleId}:{numAlt}:{gq}:{ab}'.format(**genotypes[i]))
@@ -343,7 +343,7 @@ def _get_projects_details(projects, user, project_category_guid=None):
         vtt.guid: vtt for vtt in
         VariantTagType.objects.filter(Q(project__in=projects) | Q(project__isnull=True)).prefetch_related('project')
     }
-    variant_tag_types = _get_json_for_models(variant_tag_types_by_guid.values())
+    variant_tag_types = _get_json_for_models(list(variant_tag_types_by_guid.values()))
     for project_json in projects_json:
         project = project_models_by_guid[project_json['projectGuid']]
 
@@ -508,7 +508,7 @@ def _get_search_context(results_model):
         'search': results_model.variant_search.search,
         'projectFamilies': [
             {'projectGuid': project_guid, 'familyGuids': family_guids}
-            for project_guid, family_guids in project_families.items()
+            for project_guid, family_guids in list(project_families.items())
         ],
     }
 
@@ -548,7 +548,7 @@ def _get_saved_variants(variants, families):
 
     json = get_json_for_saved_variants_with_tags(saved_variants, add_details=True)
     variants_to_saved_variants = {}
-    for saved_variant in json['savedVariantsByGuid'].values():
+    for saved_variant in list(json['savedVariantsByGuid'].values()):
         family_guids = saved_variant['familyGuids']
         searched_variant = variants_by_id.get(_get_variant_key(**saved_variant))
         if not searched_variant:

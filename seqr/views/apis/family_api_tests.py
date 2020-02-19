@@ -32,7 +32,7 @@ class ProjectAPITest(TestCase):
         self.assertEqual(response.status_code, 200)
         response_json = response.json()
 
-        self.assertListEqual(response_json.keys(), ['F000001_1'])
+        self.assertListEqual(list(response_json.keys()), ['F000001_1'])
         self.assertRegex(response_json['F000001_1']['pedigreeImage'], '/media/pedigree_images/new_ped_image_.+\.png')
 
         # send valid delete request
@@ -40,7 +40,7 @@ class ProjectAPITest(TestCase):
         self.assertEqual(response.status_code, 200)
         response_json = response.json()
 
-        self.assertListEqual(response_json.keys(), ['F000001_1'])
+        self.assertListEqual(list(response_json.keys()), ['F000001_1'])
         self.assertIsNone(response_json['F000001_1']['pedigreeImage'])
 
     def test_update_family_assigned_analyst(self):
@@ -57,7 +57,7 @@ class ProjectAPITest(TestCase):
         self.assertEqual(response.status_code, 200)
         response_json = response.json()
 
-        self.assertListEqual(response_json.keys(), ['F000001_1'])
+        self.assertListEqual(list(response_json.keys()), ['F000001_1'])
         self.assertEqual(response_json['F000001_1']['assignedAnalyst']['email'], 'test_user@test.com')
         self.assertEqual(response_json['F000001_1']['assignedAnalyst']['fullName'], 'Test User')
 
@@ -65,7 +65,7 @@ class ProjectAPITest(TestCase):
         response = self.client.post(url, content_type='application/json', data=json.dumps({}))
         self.assertEqual(response.status_code, 200)
         response_json = response.json()
-        self.assertListEqual(response_json.keys(), ['F000001_1'])
+        self.assertListEqual(list(response_json.keys()), ['F000001_1'])
         self.assertIsNone(response_json['F000001_1']['assignedAnalyst'])
 
     def test_update_success_story_types(self):
