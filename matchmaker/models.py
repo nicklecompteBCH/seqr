@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.postgres.fields import JSONField
+from typing import List
 
 from seqr.models import ModelWithGUID, Individual
 from settings import MME_DEFAULT_CONTACT_NAME, MME_DEFAULT_CONTACT_HREF
@@ -86,5 +87,5 @@ class MatchmakerContactNotes(ModelWithGUID):
         return 'MCN%07d_%s' % (self.id, self.institution.replace(' ', '_'))
 
     class Meta:
-        json_fields = []
+        json_fields : List[str] = []
         internal_json_fields = ['institution', 'comments']

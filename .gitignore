@@ -17,3 +17,6 @@ pedigree_images/*
 seqr_settings
 
 django_key
+.vscode/*
+env/*
+.mypy_cache/*

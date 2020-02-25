@@ -6,7 +6,7 @@ import hashlib
 import json
 import logging
 from pyliftover.liftover import LiftOver
-from sys import maxint
+
 from itertools import combinations
 
 from reference_data.models import GENOME_VERSION_GRCh38, GENOME_VERSION_GRCh37
@@ -48,8 +48,7 @@ class EsSearch(object):
             for index, family_samples in list(self.samples_by_family_index.items()):
                 index_skipped_families = []
                 for family_guid, samples_by_id in list(family_samples.items()):
-                    if not any(s.individual.affected == Individual.AFFECTED_STATUS_AFFECTED
-                               for s in list(samples_by_id.values()): # what is this supposed to be????
+                    if not any(s.individual.affected == Individual.AFFECTED_STATUS_AFFECTED for s in list(samples_by_id.values())): # what is this supposed to be????
                         index_skipped_families.append(family_guid)
 
                 for family_guid in index_skipped_families:
@@ -1029,7 +1028,7 @@ def _parse_es_sort(sort, sort_config):
             sort = -1
         elif sort == '-Infinity' or sort is None:
             # None of the sorts used by seqr return negative values so -1 is fine
-            sort = maxint
+            sort = -1
         else:
             sort = sort * -1
 

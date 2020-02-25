@@ -1,5 +1,6 @@
 from reference_data.models import Omim, GeneConstraint
 from seqr.models import Individual
+from typing import List, Dict, Union, Any
 
 VARIANT_DOC_TYPE = 'variant'
 MAX_VARIANTS = 10000
@@ -70,7 +71,7 @@ HGMD_CLASS_MAP = {
     'hgmd_other': ['DP', 'DFP', 'FP', 'FTV'],
 }
 
-POPULATIONS = {
+POPULATIONS : Dict[str,Dict[str,Union[str,List[str]]]]  = {
     'callset': {
         'AF': 'AF',
         'filter_AF': [],
@@ -97,7 +98,7 @@ POPULATIONS = {
         'filter_AF': ['gnomad_genomes_FAF_AF', 'gnomad_genomes_AF_POPMAX_OR_GLOBAL'],
     },
 }
-POPULATION_FIELD_CONFIGS = {
+POPULATION_FIELD_CONFIGS : Dict[str, Dict[str, Any]] = {
     'AF': {'format_value': float},
     'filter_AF': {'format_value': lambda val: float(val) if val is not None else None, 'default_value': None},
     'AC': {},
@@ -194,7 +195,7 @@ HGMD_FIELDS = ['accession', 'class']
 GENOTYPES_FIELD_KEY = 'genotypes'
 HAS_ALT_FIELD_KEYS = ['samples_num_alt_1', 'samples_num_alt_2']
 SORTED_TRANSCRIPTS_FIELD_KEY = 'sortedTranscriptConsequences'
-NESTED_FIELDS = {
+NESTED_FIELDS : Dict[str,Dict[str,Dict[Any,Any]]]= {
     field_name: {field: {} for field in fields} for field_name, fields in list({
         'clinvar': CLINVAR_FIELDS,
         'hgmd': HGMD_FIELDS,

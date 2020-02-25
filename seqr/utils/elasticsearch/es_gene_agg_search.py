@@ -1,5 +1,6 @@
 from collections import defaultdict
 import logging
+from typing import Union
 
 from seqr.utils.elasticsearch.constants import MAX_COMPOUND_HET_GENES
 from seqr.utils.elasticsearch.es_search import EsSearch
@@ -9,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class EsGeneAggSearch(EsSearch):
     AGGREGATION_NAME = 'gene aggregation'
-    CACHED_COUNTS_KEY = None
+    CACHED_COUNTS_KEY = ""
 
     def aggregate_by_gene(self):
         searches = {self._search}

@@ -4,6 +4,7 @@ from copy import deepcopy
 
 from django.test import TestCase
 from django.urls.base import reverse
+from typing import Dict, Any
 
 from seqr.models import VariantSearchResults
 from seqr.utils.elasticsearch.utils import InvalidIndexException
@@ -17,7 +18,7 @@ from seqr.views.utils.test_utils import _check_login
 LOCUS_LIST_GUID = 'LL00049_pid_genes_autosomal_do'
 PROJECT_GUID = 'R0001_1kg'
 SEARCH_HASH = 'd380ed0fd28c3127d07a64ea2ba907d7'
-SEARCH = {'filters': {}, 'inheritance': None}
+SEARCH : Dict[str,Any] = {'filters': {}, 'inheritance': None}
 PROJECT_FAMILIES = [{'projectGuid': PROJECT_GUID, 'familyGuids': ['F000001_1', 'F000002_2']}]
 VARIANTS = [
     {'alt': 'G', 'ref': 'GAGA', 'chrom': '21', 'pos': 3343400, 'xpos': 2103343400, 'genomeVersion': '38',
