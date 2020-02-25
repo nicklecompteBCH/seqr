@@ -33,7 +33,7 @@ class Command(BaseCommand):
 
         parser.add_argument('--skip-gencode', help="Don't reload gencode", action="store_true")
 
-        for source in REFERENCE_DATA_SOURCES.keys():
+        for source in list(REFERENCE_DATA_SOURCES.keys()):
             parser.add_argument(
                 '--skip-{}'.format(source.replace('_', '-')), help="Don't reload {}".format(source), action="store_true"
             )
@@ -62,7 +62,7 @@ class Command(BaseCommand):
                 logger.error("unable to update omim: {}".format(e))
                 update_failed.append('omim')
 
-        for source, data_handler in REFERENCE_DATA_SOURCES.items():
+        for source, data_handler in list(REFERENCE_DATA_SOURCES.items()):
             if not options["skip_{}".format(source)]:
                 try:
                     if data_handler:

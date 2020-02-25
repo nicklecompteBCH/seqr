@@ -54,7 +54,7 @@ def _get_mme_genes_phenotypes(results, get_features, get_genomic_features, inclu
     gene_symbols_to_ids = get_gene_ids_for_gene_symbols(gene_symbols)
     if include_matched_symbol_genes:
         # Include all gene IDs associated with the given symbol
-        for new_gene_ids in gene_symbols_to_ids.values():
+        for new_gene_ids in list(gene_symbols_to_ids.values()):
             gene_ids.update(new_gene_ids)
         # Include any gene IDs whose legacy id is the given symbol
         for gene_symbol in gene_symbols:
@@ -66,7 +66,7 @@ def _get_mme_genes_phenotypes(results, get_features, get_genomic_features, inclu
             gene_symbols_to_ids[gene_symbol] += legacy_gene_ids
             gene_ids.update(legacy_gene_ids)
     else:
-        gene_ids.update({new_gene_ids[0] for new_gene_ids in gene_symbols_to_ids.values()})
+        gene_ids.update({new_gene_ids[0] for new_gene_ids in list(gene_symbols_to_ids.values())})
 
     genes_by_id = get_genes(gene_ids)
 
@@ -165,7 +165,7 @@ def get_mme_matches(patient_data, origin_request_host=None, user=None):
         for feature in genomic_features:
             feature['gene_ids'] = get_gene_ids_for_feature(feature, gene_symbols_to_ids)
         get_submission_kwargs = {
-            'query_ids': genes_by_id.keys(),
+            'query_ids': list(genes_by_id.keys()),
             'filter_key': 'genomic_features',
             'id_filter_func': lambda gene_id: {'gene': {'id': gene_id}},
         }
@@ -191,8 +191,8 @@ def get_mme_matches(patient_data, origin_request_host=None, user=None):
     if not scored_matches:
         return [], incoming_query
 
-    prefetch_related_objects(scored_matches.keys(), 'matchmakerresult_set')
-    for match_submission in scored_matches.keys():
+    prefetch_related_objects(list(scored_matches.keys()), 'matchmakerresult_set')
+    for match_submission in list(scored_matches.keys()):
         if not match_submission.matchmakerresult_set.filter(result_data__patient__id=query_patient_id):
             MatchmakerResult.objects.create(
                 submission=match_submission,
@@ -202,7 +202,7 @@ def get_mme_matches(patient_data, origin_request_host=None, user=None):
             )
 
     return [get_submission_json_for_external_match(match_submission, score=score)
-            for match_submission, score in scored_matches.items()], incoming_query
+            for match_submission, score in list(scored_matches.items())], incoming_query
 
 
 def _get_matched_submissions(patient_id, get_match_genotype_score, get_match_phenotype_score, query_ids, filter_key, id_filter_func):

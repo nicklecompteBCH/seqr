@@ -149,7 +149,7 @@ def _generate_notification_for_incoming_match(results, incoming_query, incoming_
         individual = submission.individual
         project = individual.family.project
 
-        result_text = u"""seqr ID {individual_id} from project {project_name} in family {family_id} inserted into
+        result_text = """seqr ID {individual_id} from project {project_name} in family {family_id} inserted into
 matchbox on {insertion_date}, with seqr link
 {host}project/{project_guid}/family_page/{family_guid}/matchmaker_exchange""".replace('\n', ' ').format(
             individual_id=individual.individual_id, project_guid=project.guid, project_name=project.name,
@@ -161,9 +161,9 @@ matchbox on {insertion_date}, with seqr link
         all_emails.update(emails)
         match_results.append((result_text, emails))
 
-    base_message = u"""Dear collaborators,
+    base_message = """Dear collaborators,
 
-    matchbox found a match between a patient from {query_institution} and the following {number_of_results} case(s) 
+    matchbox found a match between a patient from {query_institution} and the following {number_of_results} case(s)
     in matchbox. The following information was included with the query,
 
     genes: {incoming_query_genes}
@@ -176,13 +176,13 @@ matchbox on {insertion_date}, with seqr link
     """.format(
         query_institution=institution,
         number_of_results=len(results),
-        incoming_query_genes=', '.join(sorted([gene['geneSymbol'] for gene in genes_by_id.values()])),
-        incoming_query_phenotypes=', '.join(['{} ({})'.format(hpo_id, term) for hpo_id, term in hpo_terms_by_id.items()]),
+        incoming_query_genes=', '.join(sorted([gene['geneSymbol'] for gene in list(genes_by_id.values())])),
+        incoming_query_phenotypes=', '.join(['{} ({})'.format(hpo_id, term) for hpo_id, term in list(hpo_terms_by_id.items())]),
         incoming_query_contact_url=contact_href,
         incoming_query_contact_name=incoming_patient['patient']['contact'].get('name', '(sorry I was not able to read the information given for name'),
     )
 
-    message_template = u"""{base_message}{match_results}
+    message_template = """{base_message}{match_results}
 
     We sent this email alert to: {email_addresses_alert_sent_to}\n{footer}."""
 
@@ -205,6 +205,6 @@ matchbox on {insertion_date}, with seqr link
 
 
 MME_EMAIL_FOOTER = """
-Thank you for using the matchbox system for the Matchmaker Exchange at the Broad Center for Mendelian Genomics. 
-Our website can be found at https://seqr.broadinstitute.org/matchmaker/matchbox and our legal disclaimers can 
+Thank you for using the matchbox system for the Matchmaker Exchange at the Broad Center for Mendelian Genomics.
+Our website can be found at https://seqr.broadinstitute.org/matchmaker/matchbox and our legal disclaimers can
 be found found at https://seqr.broadinstitute.org/matchmaker/disclaimer"""

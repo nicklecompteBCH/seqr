@@ -25,7 +25,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--reset', help="First drop any existing records from GeneInfo and TranscriptInfo", action="store_true")
-        parser.add_argument('--gencode-release', help="gencode release number (eg. 28)", type=int, required=True, choices=range(19, 32))
+        parser.add_argument('--gencode-release', help="gencode release number (eg. 28)", type=int, required=True, choices=list(range(19, 32)))
         parser.add_argument('gencode_gtf_path', nargs="?", help="(optional) gencode GTF file path. If not specified, it will be downloaded.")
         parser.add_argument('genome_version', nargs="?", help="gencode GTF file genome version", choices=[GENOME_VERSION_GRCh37, GENOME_VERSION_GRCh38])
 
@@ -90,7 +90,7 @@ def update_gencode(gencode_release, gencode_gtf_path=None, genome_version=None, 
     new_genes = collections.defaultdict(dict)
     new_transcripts = collections.defaultdict(dict)
 
-    for genome_version, gencode_gtf_path in gencode_gtf_paths.items():
+    for genome_version, gencode_gtf_path in list(gencode_gtf_paths.items()):
         coding_region_size_field_name = "coding_region_size_grch{}".format(genome_version)
 
         logger.info("Loading {} (genome version: {})".format(gencode_gtf_path, genome_version))
@@ -105,7 +105,7 @@ def update_gencode(gencode_release, gencode_gtf_path=None, genome_version=None, 
                 if len(fields) != len(GENCODE_FILE_HEADER):
                     raise ValueError("Unexpected number of fields on line #%s: %s" % (i, fields))
 
-                record = dict(zip(GENCODE_FILE_HEADER, fields))
+                record = dict(list(zip(GENCODE_FILE_HEADER, fields)))
 
                 if record['feature_type'] not in ('gene', 'transcript', 'CDS'):
                     continue
@@ -172,16 +172,16 @@ def update_gencode(gencode_release, gencode_gtf_path=None, genome_version=None, 
 
     logger.info('Creating {} GeneInfo records'.format(len(new_genes)))
     counters["genes_created"] = len(new_genes)
-    GeneInfo.objects.bulk_create([GeneInfo(**record) for record in new_genes.values()])
+    GeneInfo.objects.bulk_create([GeneInfo(**record) for record in list(new_genes.values())])
     gene_id_to_gene_info = {g.gene_id: g for g in GeneInfo.objects.all().only('gene_id')}
 
     logger.info('Creating {} TranscriptInfo records'.format(len(new_transcripts)))
     counters["transcripts_created"] = len(new_transcripts)
     TranscriptInfo.objects.bulk_create([
-        TranscriptInfo(gene=gene_id_to_gene_info[record.pop('gene_id')], **record) for record in new_transcripts.values()
+        TranscriptInfo(gene=gene_id_to_gene_info[record.pop('gene_id')], **record) for record in list(new_transcripts.values())
     ], batch_size=50000)
 
     logger.info("Done")
     logger.info("Stats: ")
-    for k, v in counters.items():
+    for k, v in list(counters.items()):
         logger.info("  %s: %s" % (k, v))

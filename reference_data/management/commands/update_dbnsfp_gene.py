@@ -39,7 +39,7 @@ class DbNSFPReferenceDataHandler(ReferenceDataHandler):
     @staticmethod
     def parse_record(record):
         parsed_record = {FIELD_MAP.get(k, k.split('(')[0].lower()): (v if v != '.' else '')
-                         for k, v in record.items() if not k.startswith(EXCLUDE_FIELDS)}
+                         for k, v in list(record.items()) if not k.startswith(EXCLUDE_FIELDS)}
         parsed_record["function_desc"] = parsed_record["function_desc"].replace("FUNCTION: ", "")
         parsed_record['gene_id'] = parsed_record['gene_id'].split(';')[0]
 

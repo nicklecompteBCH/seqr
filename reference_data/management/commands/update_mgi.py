@@ -26,7 +26,7 @@ class MGIReferenceDataHandler(ReferenceDataHandler):
 
     @staticmethod
     def parse_record(record):
-        yield {k: v.strip() for k, v in record.items() if k in ['gene_symbol', 'marker_id', 'entrez_gene_id']}
+        yield {k: v.strip() for k, v in list(record.items()) if k in ['gene_symbol', 'marker_id', 'entrez_gene_id']}
 
     def get_gene_for_record(self, record):
         gene = self.entrez_id_to_gene.get(record.pop('entrez_gene_id'))

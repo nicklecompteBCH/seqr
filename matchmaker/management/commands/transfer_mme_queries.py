@@ -80,7 +80,7 @@ def set_mme_query_results(external_queries_collection, skip_validation=False):
 
     existing_results = {}
     new_results = []
-    for patient_id, results in results_by_patient_id.items():
+    for patient_id, results in list(results_by_patient_id.items()):
         existing_query_ids = set()
         for result in existing_results_by_patient_id[patient_id]:
             query_id = result.submission.submission_id
@@ -91,14 +91,14 @@ def set_mme_query_results(external_queries_collection, skip_validation=False):
                 _validate_matched_existing_result(result, mongo_result)
             existing_query_ids.add(query_id)
             existing_results[result] = mongo_result['query']
-        for query_id, result in results.items():
+        for query_id, result in list(results.items()):
             if query_id not in existing_query_ids:
                 new_results.append(result)
 
     logger.info('Found matches for {} existing results; found {} new results'.format(len(existing_results), len(new_results)))
 
     all_query_ids = {result['query']['guid'] for result in new_results}
-    all_query_ids.update({query['guid'] for query in existing_results.values()})
+    all_query_ids.update({query['guid'] for query in list(existing_results.values())})
     queries_by_guid = {query.guid: query for query in MatchmakerIncomingQuery.objects.filter(guid__in=all_query_ids)}
     submissions_by_id = {submission.submission_id: submission for submission in MatchmakerSubmission.objects.all()}
 
@@ -110,9 +110,9 @@ def set_mme_query_results(external_queries_collection, skip_validation=False):
         }
         if missing_submission_queries:
             logger.warn('Broad queries missing a submission: {}'.format(', '.join(['{} ({})'.format(
-                patient_id, institution) for patient_id, institution in missing_submission_queries.items()])))
+                patient_id, institution) for patient_id, institution in list(missing_submission_queries.items())])))
 
-    for result, query in existing_results.items():
+    for result, query in list(existing_results.items()):
         result.originating_query = queries_by_guid[query['guid']]
         result.save()
     logger.info('Successfully updated queries for {} results'.format(len(existing_results)))
@@ -141,7 +141,7 @@ def _update_id_field(result):
 
 def _validate_matched_existing_result(result, mongo_result):
     diff = {
-        k: v for k, v in result.result_data['patient'].items()
+        k: v for k, v in list(result.result_data['patient'].items())
         if v and v != mongo_result['result']['patient']['_id' if k == 'id' else k]
     }
     if 'genomicFeatures' in diff:
@@ -149,7 +149,7 @@ def _validate_matched_existing_result(result, mongo_result):
         expected_features = mongo_result['result']['patient']['genomicFeatures']
         for i, feature in enumerate(diff['genomicFeatures']):
             diff_feature = {
-                k: v for k, v in feature.items() if k in {
+                k: v for k, v in list(feature.items()) if k in {
                 'alternateBases', 'referenceBases', 'referenceName', 'start', 'assembly',
             } and v != expected_features[i][k]}
             if diff_feature:
@@ -163,7 +163,7 @@ def _validate_matched_existing_result(result, mongo_result):
         expected_features = mongo_result['result']['patient']['features']
         for i, feature in enumerate(diff['features']):
             diff_feature = {
-                k: v for k, v in feature.items() if v and v != expected_features[i]['_id' if k == 'id' else k]
+                k: v for k, v in list(feature.items()) if v and v != expected_features[i]['_id' if k == 'id' else k]
             }
             if diff_feature:
                 diff_features.push(diff_feature)
@@ -173,7 +173,7 @@ def _validate_matched_existing_result(result, mongo_result):
             del diff['features']
     if diff:
         raise CommandError('Mismatched mongo and seqr result]\nseqr: {}\nmongo: {}'.format(
-            json.dumps(diff), json.dumps({k: mongo_result['result']['patient'].get(k) for k in diff.keys()}),
+            json.dumps(diff), json.dumps({k: mongo_result['result']['patient'].get(k) for k in list(diff.keys())}),
         ))
 
 
