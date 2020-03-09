@@ -42,7 +42,7 @@ def parse_pedigree_table(parsed_file, filename, user=None, project=None):
 
     # parse rows from file
     try:
-        rows = [row for row in parsed_file[1:] if row and not (row[0] or '').startswith('#')]
+        rows = [row for row in parsed_file[1:] if row and not (row[0].decode('utf-8')).startswith('#') for entry in row]
 
         header_string = str(parsed_file[0])
         is_datstat_upload = 'DATSTAT' in header_string
@@ -71,15 +71,15 @@ def parse_pedigree_table(parsed_file, filename, user=None, project=None):
                 header_row = parsed_file[0]
             else:
                 header_row = next(
-                    (row for row in parsed_file[1:] if row[0].startswith('#') and _is_header_row(','.join(row))),
+                    ([entry.decode('utf-8')] for row in parsed_file[1:] if row[0].decode('utf-8').startswith('#') and _is_header_row(','.join([e.decode('utf-8') for e in row]))),
                     ['family_id', 'individual_id', 'paternal_id', 'maternal_id', 'sex', 'affected']
                 )
-            header = [(field or '').strip('#') for field in header_row]
+            header = [(field.decode('utf-8') or '').strip('#') for field in header_row]
 
         for i, row in enumerate(rows):
             if len(row) != len(header):
                 raise ValueError("Row {} contains {} columns: {}, while header contains {}: {}".format(
-                    i + 1, len(row), ', '.join(row), len(header), ', '.join(header)
+                    i + 1, len(row), ', '.join(list(map(lambda x: x.decode('utf-8'),row))), len(header), ', '.join(header)
                 ))
 
         rows = [dict(zip(header, row)) for row in rows]
@@ -148,7 +148,7 @@ def _convert_fam_file_rows_to_json(rows):
         # parse
         for key, value in row_dict.items():
             key = key.lower()
-            value = (value or '').strip()
+            value = (value.decode('utf-8') or '').strip()
             if key.lower() == JsonConstants.FAMILY_NOTES_COLUMN.lower():
                 json_record[JsonConstants.FAMILY_NOTES_COLUMN] = value
             elif "family" in key:
@@ -188,7 +188,7 @@ def _convert_fam_file_rows_to_json(rows):
                 raise ValueError("Invalid value '%s' for sex in row #%d" % (json_record[JsonConstants.SEX_COLUMN], i+1))
 
         if JsonConstants.AFFECTED_COLUMN in json_record:
-            if json_record[JsonConstants.AFFECTED_COLUMN] == '1' or json_record[JsonConstants.AFFECTED_COLUMN].upper() == "U" or json_record[JsonConstants.AFFECTED_COLUMN].lower() == 'unaffected':
+            if json_record[JsonConstants.AFFECTED_COLUMN] == '1' or json_record[JsonConstants.AFFECTED_COLUMN].upper().startswith("U") or json_record[JsonConstants.AFFECTED_COLUMN].lower() == 'unaffected':
                 json_record[JsonConstants.AFFECTED_COLUMN] = 'N'
             elif json_record[JsonConstants.AFFECTED_COLUMN] == '2' or json_record[JsonConstants.AFFECTED_COLUMN].upper().startswith('A'):
                 json_record[JsonConstants.AFFECTED_COLUMN] = 'A'

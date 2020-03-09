@@ -3,7 +3,7 @@ import os
 import requests
 import tempfile
 from tqdm import tqdm
-import urllib
+import urllib.request
 
 logger = logging.getLogger(__name__)
 
@@ -24,15 +24,15 @@ def download_file(url, to_dir=tempfile.gettempdir(), verbose=True):
         logger.info("Re-using {} previously downloaded from {}".format(local_file_path, url))
         return local_file_path
 
-    input_iter = urllib.urlopen(url)
-    if verbose:
-        logger.info("Downloading {} to {}".format(url, local_file_path))
-        input_iter = tqdm(input_iter, unit=" data" if url.endswith("gz") else " lines")
+    input_iter = urllib.request.urlopen(url).read()
+    #if verbose:
+    #    logger.info("Downloading {} to {}".format(url, local_file_path))
+    #    input_iter = tqdm(input_iter, unit=" data" if url.endswith("gz") else " lines")
 
-    with open(local_file_path, 'w') as f:
-        f.writelines(input_iter)
+    with open(local_file_path, 'wb') as f:
+        f.write(input_iter)
 
-    input_iter.close()
+    #input_iter.close()
 
     return local_file_path
 

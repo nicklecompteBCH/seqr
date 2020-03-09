@@ -1,7 +1,7 @@
 from collections import defaultdict
 from copy import deepcopy
 import elasticsearch
-from elasticsearch_dsl import Search, Q, MultiSearch
+from elasticsearch_dsl import Search, Q, MultiSearch,AttrList
 import hashlib
 import json
 import logging
@@ -83,7 +83,7 @@ class EsSearch(object):
         from seqr.utils.elasticsearch.utils import get_index_metadata
         self.index_name = ','.join(sorted(self.samples_by_family_index.keys()))
         if len(self.index_name) > MAX_INDEX_NAME_LENGTH:
-            alias = hashlib.md5(self.index_name).hexdigest()
+            alias = hashlib.md5(self.index_name.encode('utf-8')).hexdigest()
             cache_key = 'index_alias__{}'.format(alias)
             if safe_redis_get_json(cache_key) != self.index_name:
                 self._client.indices.update_aliases(body={'actions': [
@@ -228,7 +228,7 @@ class EsSearch(object):
             return self._execute_multi_search(**search_kwargs)
 
     def _should_execute_single_search(self, page=1, num_results=100):
-        indices = self.samples_by_family_index.keys()
+        indices = list(self.samples_by_family_index.keys())
         is_single_search = len(indices) == 1 and len(self._index_searches.get(indices[0], [])) <= 1
         num_loaded = len(self.previous_search_results.get('all_results', []))
 
@@ -1058,5 +1058,23 @@ def _get_field_values(hit, field_configs, format_response_key=_to_camel_case, ge
 def _value_if_has_key(hit, keys, format_value=None, default_value=None, existing_fields=None, **kwargs):
     for key in keys:
         if key in hit:
-            return format_value(default_value if hit[key] is None else hit[key]) if format_value else hit[key]
+            if hit[key]:
+                if isinstance(hit[key],AttrList):
+                    if format_value:
+                        try:
+                            return format_value(list(hit[key])[0])
+                        except Exception as e:
+                            print(e)
+                            return default_value
+                    else:
+                        return list(hit[key])[0]
+                else:
+                    if format_value:
+                        try:
+                            return format_value(hit[key])
+                        except Exception as e:
+                            print(e)
+                            return default_value
+                    else:
+                        return hit[key]
     return default_value if not existing_fields or any(key in existing_fields for key in keys) else None

@@ -214,8 +214,9 @@ api_endpoints = {
     'gene_info/(?P<gene_id>[^/]+)/note/(?P<note_guid>[^/]+)/delete': delete_gene_note_handler,
 
     'locus_lists': locus_lists,
-    'locus_lists/(?P<locus_list_guid>[^/]+)': locus_list_info,
     'locus_lists/create': create_locus_list_handler,
+    'locus_lists/(?P<locus_list_guid>[^/]+)': locus_list_info,
+ #   'locus_lists/create': create_locus_list_handler,
     'locus_lists/(?P<locus_list_guid>[^/]+)/update': update_locus_list_handler,
     'locus_lists/(?P<locus_list_guid>[^/]+)/delete': delete_locus_list_handler,
     'project/(?P<project_guid>[^/]+)/add_locus_lists': add_project_locus_lists,
@@ -301,7 +302,6 @@ urlpatterns += [
 ]
 
 urlpatterns += [
-    url(r'^hijack/', include('hijack.urls')),
     url(r'^admin/doc/', include(django.contrib.admindocs.urls)),
     url(r'^admin/', admin.site.urls),
     url(r'^media/(?P<path>.*)$', django.views.static.serve, {

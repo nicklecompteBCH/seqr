@@ -38,7 +38,7 @@ def validate_index_metadata(index_metadata, project, elasticsearch_index, genome
         ))
 
     dataset_path = index_metadata['sourceFilePath']
-    if not dataset_path.endswith('.vds') and not dataset_path.endswith('.vcf.gz') and not dataset_path.endswith('.vcf.bgz'):
+    if not dataset_path.endswith('.vds') and not dataset_path.endswith('.vcf.gz') and not dataset_path.endswith('.vcf.bgz') and not dataset_path.endswith('.vcf'):
         raise Exception("Variant call dataset path must end with .vcf.gz or .vds")
 
 
@@ -60,9 +60,10 @@ def load_uploaded_mapping_file(mapping_file_id):
 def _load_mapping_file(file_content):
     id_mapping = {}
     for line in file_content:
-        if len(line) != 2:
+        ln = list(line)
+        if len(ln) != 2:
             raise ValueError("Must contain 2 columns: " + ', '.join(line))
-        id_mapping[line[0]] = line[1]
+        id_mapping[ln[0]] = ln[1]
     return id_mapping
 
 

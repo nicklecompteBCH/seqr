@@ -277,7 +277,7 @@ class Family(ModelWithGUID):
 
 # TODO should be an ArrayField directly on family once family fields have audit trail (https://github.com/macarthur-lab/seqr-private/issues/449)
 class FamilyAnalysedBy(ModelWithGUID):
-    family = models.ForeignKey(Family)
+    family = models.ForeignKey(Family,on_delete=models.CASCADE)
 
     def __unicode__(self):
         return '{}_{}'.format(self.family.guid, self.created_by)
@@ -462,7 +462,8 @@ class SavedVariant(ModelWithGUID):
 
     xpos_start = models.BigIntegerField()
     xpos_end = models.BigIntegerField(null=True)
-    xpos = AliasField(db_column="xpos_start")
+    def xpos(self):
+        return self.xpos_start #AliasField(db_column="xpos_start")
     ref = models.TextField()
     alt = models.TextField()
 

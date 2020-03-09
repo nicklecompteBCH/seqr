@@ -243,7 +243,7 @@ def receive_individuals_table_handler(request, project_guid):
     except ErrorsWarningsException as e:
         return create_json_response({'errors': e.errors, 'warnings': e.warnings}, status=400, reason=e.errors)
     except Exception as e:
-        return create_json_response({'errors': [e.message or str(e)], 'warnings': []}, status=400, reason=e.message or str(e))
+        return create_json_response({'errors': [str(e)], 'warnings': []}, status=400, reason=str(e))
 
     # send back some stats
     individual_ids_by_family = defaultdict(list)

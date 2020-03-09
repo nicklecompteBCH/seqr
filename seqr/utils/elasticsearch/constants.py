@@ -169,7 +169,7 @@ SORT_FIELDS = {
     '1kg': [{POPULATIONS['g1k']['AF']: {'missing': '_first'}}],
     'cadd': [{'cadd_PHRED': {'order': 'desc'}}],
     'revel': [{'dbnsfp_REVEL_score': {'order': 'desc'}}],
-    'eigen': [{'eigen_Eigen_phred': {'order': 'desc'}}],
+    'eigen': [{'eigen_Phred': {'order': 'desc'}}],
     'mpc': [{'mpc_MPC': {'order': 'desc'}}],
     'splice_ai': [{'splice_ai_delta_score': {'order': 'desc'}}],
     'primate_ai': [{'primate_ai_score': {'order': 'desc'}}],
@@ -216,7 +216,7 @@ CORE_FIELDS_CONFIG = {
 PREDICTION_FIELDS_CONFIG = {
     'cadd_PHRED': {'response_key': 'cadd'},
     'dbnsfp_DANN_score': {},
-    'eigen_Eigen_phred': {},
+    'eigen_Phred': {'response_key' : 'eigen'},
     'dbnsfp_FATHMM_pred': {},
     'dbnsfp_GERP_RS': {'response_key': 'gerp_rs'},
     'mpc_MPC': {},

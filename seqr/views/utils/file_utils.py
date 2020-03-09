@@ -6,7 +6,7 @@ import logging
 import os
 import tempfile
 import openpyxl as xl
-
+from io import TextIOWrapper
 
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
@@ -40,7 +40,7 @@ def parse_file(filename, stream):
         return [map(lambda s: s.strip().strip('"'), line.rstrip('\n').split('\t')) for line in stream]
 
     elif filename.endswith('.csv'):
-        return [row for row in csv.reader(stream)]
+        return [list(map(lambda s: s.strip().strip('"'), (line.rstrip('\n').split(',') if isinstance(line, str) else line.decode('utf-8').rstrip('\n').split(',')))) for line in stream]
 
     elif filename.endswith('.xls') or filename.endswith('.xlsx'):
         wb = xl.load_workbook(stream, read_only=True)
@@ -86,7 +86,7 @@ def save_uploaded_file(request, process_records=None):
         raise ValueError("Received %s files instead of 1" % len(request.FILES))
 
     # parse file
-    stream = request.FILES.values()[0]
+    stream = list(request.FILES.values())[0]
     filename = stream._name
 
     json_records = parse_file(filename, stream)
@@ -94,9 +94,9 @@ def save_uploaded_file(request, process_records=None):
         json_records = process_records(json_records, filename=filename)
 
     # save json to temporary file
-    uploaded_file_id = hashlib.md5(str(json_records)).hexdigest()
+    uploaded_file_id = hashlib.md5(str(json_records).encode('utf-8')).hexdigest()
     serialized_file_path = _compute_serialized_file_path(uploaded_file_id)
-    with gzip.open(serialized_file_path, "w") as f:
+    with gzip.open(serialized_file_path, "wt") as f:
         json.dump(json_records, f)
 
     return uploaded_file_id, filename, json_records

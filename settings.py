@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.sessions',
     'django.contrib.staticfiles',
-    'hijack',
     'corsheaders',
     'guardian',
     'anymail',
@@ -55,6 +54,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'seqr.utils.middleware.JsonErrorMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware'
 ]
 
 # django-hijack plugin
@@ -71,6 +71,12 @@ CORS_ALLOW_CREDENTIALS = True
 ALLOWED_HOSTS = ['*']
 
 CSRF_COOKIE_HTTPONLY = True
+SECURE_SSL_REDIRECT = False
+SECURE_HSTS_SECONDS = 3600
+SESSION_COOKIE_SECURE = False
+SECURE_PROXY_SSL_HEADER = None
+CSRF_COOKIE_SECURE = False
+
 
 # django-debug-toolbar settings
 ENABLE_DJANGO_DEBUG_TOOLBAR = False
@@ -217,15 +223,15 @@ WSGI_APPLICATION = 'wsgi.application'
 
 # Email settings
 EMAIL_BACKEND = "anymail.backends.postmark.EmailBackend"
-DEFAULT_FROM_EMAIL = "seqr@broadinstitute.org"
+DEFAULT_FROM_EMAIL = "research.computing@childrens.harvard.edu"
 
 ANYMAIL = {
     "POSTMARK_SERVER_TOKEN": os.environ.get('POSTMARK_SERVER_TOKEN', 'postmark-server-token-placeholder'),
 }
 
 if os.environ.get('DEPLOYMENT_TYPE') == 'prod':
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
     DEBUG = False
 else:
     DEBUG = True
@@ -256,7 +262,7 @@ KIBANA_SERVER = '{host}:{port}'.format(
 )
 
 PHENOTIPS_SERVER = '{host}:{port}'.format(
-    host=os.environ.get('PHENOTIPS_SERVICE_HOSTNAME', 'localhost'),
+    host=os.environ.get('PHENOTIPS_SERVICE_HOSTNAME', 'http://ip-172-31-83-200.ec2.internal'),
     port=os.environ.get('PHENOTIPS_SERVICE_PORT', 8080)
 )
 PHENOTIPS_ADMIN_UNAME = 'Admin'
@@ -265,9 +271,9 @@ PHENOTIPS_ADMIN_PWD = 'admin'
 REDIS_SERVICE_HOSTNAME = os.environ.get('REDIS_SERVICE_HOSTNAME', 'localhost')
 
 # Matchmaker
-MME_DEFAULT_CONTACT_NAME = 'Samantha Baxter'
-MME_DEFAULT_CONTACT_INSTITUTION = 'Broad Center for Mendelian Genomics'
-MME_DEFAULT_CONTACT_EMAIL = 'matchmaker@broadinstitute.org'
+MME_DEFAULT_CONTACT_NAME = 'Kristi Murphy'
+MME_DEFAULT_CONTACT_INSTITUTION = 'Research Computing - Boston Children\'s Hospital'
+MME_DEFAULT_CONTACT_EMAIL = 'research.computing@childrens.harvard.edu'
 MME_DEFAULT_CONTACT_HREF = 'mailto:{}'.format(MME_DEFAULT_CONTACT_EMAIL)
 
 MME_CONFIG_DIR = os.environ.get('MME_CONFIG_DIR', '')

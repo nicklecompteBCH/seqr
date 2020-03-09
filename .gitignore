@@ -20,3 +20,4 @@ django_key
 .vscode/*
 env/*
 .mypy_cache/*
+ui/dist/*
