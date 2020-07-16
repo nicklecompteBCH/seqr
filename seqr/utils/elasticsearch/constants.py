@@ -92,10 +92,10 @@ POPULATIONS : Dict[str,Dict[str,Union[str,List[str]]]]  = {
         'Hemi': 'exac_AC_Hemi',
     },
     'gnomad_exomes': {
-        'filter_AF': ['gnomad_exomes_FAF_AF', 'gnomad_exomes_AF_POPMAX_OR_GLOBAL'],
+        'filter_AF': ['gnomad_exomes_FAF_AF', 'gnomad_exomes_AF'],
     },
     'gnomad_genomes': {
-        'filter_AF': ['gnomad_genomes_FAF_AF', 'gnomad_genomes_AF_POPMAX_OR_GLOBAL'],
+        'filter_AF': ['gnomad_genomes_FAF_AF', 'gnomad_genomes_AF'],
     },
 }
 POPULATION_FIELD_CONFIGS : Dict[str, Dict[str, Any]] = {

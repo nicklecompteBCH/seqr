@@ -42,7 +42,7 @@ def parse_pedigree_table(parsed_file, filename, user=None, project=None):
 
     # parse rows from file
     try:
-        rows = [row for row in parsed_file[1:] if row and not (row[0].decode('utf-8')).startswith('#') for entry in row]
+        rows = [row for row in parsed_file[1:] if row and not (row[0]).startswith('#') for entry in row]
 
         header_string = str(parsed_file[0])
         is_datstat_upload = 'DATSTAT' in header_string
@@ -74,7 +74,7 @@ def parse_pedigree_table(parsed_file, filename, user=None, project=None):
                     ([entry.decode('utf-8')] for row in parsed_file[1:] if row[0].decode('utf-8').startswith('#') and _is_header_row(','.join([e.decode('utf-8') for e in row]))),
                     ['family_id', 'individual_id', 'paternal_id', 'maternal_id', 'sex', 'affected']
                 )
-            header = [(field.decode('utf-8') or '').strip('#') for field in header_row]
+            header = [(field or '').strip('#') for field in header_row]
 
         for i, row in enumerate(rows):
             if len(row) != len(header):
@@ -148,7 +148,7 @@ def _convert_fam_file_rows_to_json(rows):
         # parse
         for key, value in row_dict.items():
             key = key.lower()
-            value = (value.decode('utf-8') or '').strip()
+            value = (value or '').strip()
             if key.lower() == JsonConstants.FAMILY_NOTES_COLUMN.lower():
                 json_record[JsonConstants.FAMILY_NOTES_COLUMN] = value
             elif "family" in key:

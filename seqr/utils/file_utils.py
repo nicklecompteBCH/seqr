@@ -9,10 +9,14 @@ from seqr.utils.local.local_file_utils import is_local_file_path, get_local_file
 
 logger = logging.getLogger(__name__)
 
+def does_s3_bucket_file_exist(path):
+    return True
 
 def does_file_exist(file_path):
     if is_google_bucket_file_path(file_path):
         return does_google_bucket_file_exist(file_path)
+    elif file_path.startswith('s3'):
+        return does_s3_bucket_file_exist(file_path)
     elif is_local_file_path(file_path):
         return os.path.isfile(file_path)
     else:

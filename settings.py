@@ -155,6 +155,14 @@ LOGGING = {
         }
     },
     'handlers': {
+        'gunicorn': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'formatter': 'verbose',
+            'filename': '/opt/seqr/seqr_settings/error.log',
+            'maxBytes': 1024 * 1024 * 100,
+            'filters':['require_debug_false']
+            },
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
@@ -175,7 +183,7 @@ LOGGING = {
     },
     'loggers': {
         '': {
-            'handlers': ['file', 'console'],
+            'handlers': ['file', 'console','gunicorn'],
             'level': 'INFO',
             'formatter': 'verbose',
             'propagate': True,

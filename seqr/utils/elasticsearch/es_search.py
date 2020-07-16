@@ -115,6 +115,7 @@ class EsSearch(object):
             if freqs.get('hh') is not None:
                 q &= _pop_freq_filter(POPULATIONS[pop]['Hom'], freqs['hh'])
                 q &= _pop_freq_filter(POPULATIONS[pop]['Hemi'], freqs['hh'])
+        logger.info("Searching for frequency: " + repr(q))
         self.filter(q)
 
     def filter_by_annotations(self, annotations, pathogenicity_filter):
@@ -408,11 +409,9 @@ class EsSearch(object):
             )
             for population, pop_config in list(POPULATIONS.items())
         }
-
-        sorted_transcripts = [
-            {_to_camel_case(k): v for k, v in list(transcript.to_dict().items())}
-            for transcript in hit[SORTED_TRANSCRIPTS_FIELD_KEY] or []
-        ]
+        sorted_transcripts = []
+        if SORTED_TRANSCRIPTS_FIELD_KEY in hit:
+            sorted_transcripts = [{_to_camel_case(k): v for k, v in list(transcript.to_dict().items())} for transcript in hit[SORTED_TRANSCRIPTS_FIELD_KEY]]# if SORTED_TRANSCRIPTS_FIELD_KEY in hit else []
         transcripts = defaultdict(list)
         for transcript in sorted_transcripts:
             transcripts[transcript['geneId']].append(transcript)
@@ -631,7 +630,7 @@ class EsSearch(object):
         duplicates = 0
         results = {}
         for gene_compound_het_pair in compound_het_results:
-            gene = gene_compound_het_pair.keys()[0]
+            gene = list(gene_compound_het_pair.keys())[0]
             compound_het_pair = gene_compound_het_pair[gene]
             if gene in results:
                 variant_ids = {variant['variantId'] for variant in compound_het_pair}
@@ -947,7 +946,7 @@ def _pathogenicity_filter(pathogenicity):
         clinvar_clinical_significance_terms = set()
         for clinvar_filter in clinvar_filters:
             clinvar_clinical_significance_terms.update(CLINVAR_SIGNFICANCE_MAP.get(clinvar_filter, []))
-        pathogenicity_filter = Q('terms', clinvar_clinical_significance=list(clinvar_clinical_significance_terms))
+        pathogenicity_filter = Q('terms', clinvar_clinical_significance=list(clinvar_clinical_significance_terms)) | ~Q('exists', field='clinvar_clinical_significance')
 
     if hgmd_filters:
         hgmd_class = set()
@@ -1000,7 +999,7 @@ def _get_sort(sort_key):
 
 
 def _sort_compound_hets(grouped_variants):
-    return sorted(grouped_variants, key=lambda variants: variants.values()[0][0]['_sort'])
+    return sorted(grouped_variants, key=lambda variants: list(variants.values())[0][0]['_sort'])
 
 
 def _get_compound_het_page(grouped_variants, start_index, end_index):

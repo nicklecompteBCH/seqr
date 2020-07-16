@@ -37,14 +37,14 @@ const FamilyVariantReads = ({ variant, activeSamples, individualsByGuid, hideRea
 
     let trackOptions = BAM_TRACK_OPTIONS
     if (sample.datasetFilePath.endsWith('.cram')) {
-      if (sample.datasetFilePath.startsWith('gs://')) {
+//      if (true) {//(sample.datasetFilePath.startsWith('s3://')) {
         trackOptions = {
           format: 'cram',
           indexURL: `${url}.crai`,
         }
-      } else {
-        trackOptions = CRAM_PROXY_TRACK_OPTIONS
-      }
+//      } else {
+//        trackOptions = CRAM_PROXY_TRACK_OPTIONS
+//      }
     }
 
     const trackName = ReactDOMServer.renderToString(
