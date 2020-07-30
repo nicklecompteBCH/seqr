@@ -40,7 +40,7 @@ const FamilyVariantReads = ({ variant, activeSamples, individualsByGuid, hideRea
 //      if (true) {//(sample.datasetFilePath.startsWith('s3://')) {
         trackOptions = {
           format: 'cram',
-          indexURL: `${url}.crai`,
+          indexed:  true, // `${url}.crai`,
         }
 //      } else {
 //        trackOptions = CRAM_PROXY_TRACK_OPTIONS
