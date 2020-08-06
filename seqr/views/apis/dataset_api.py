@@ -246,7 +246,7 @@ def update_individual_alignment_sample(request, individual_guid):
         )
         sample.dataset_file_path = dataset_path
         sample.sample_type = sample_type
-        sample.sample_id = dataset_path.split('/')[-1].split('.')[0]
+        sample.sample_id = dataset_path.split('/')[-1].split('.')[0] # wtf is this nonsense...
         if created:
             sample.loaded_date = timezone.now()
         sample.save()

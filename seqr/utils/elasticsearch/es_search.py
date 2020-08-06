@@ -417,9 +417,9 @@ class EsSearch(object):
             if 'geneId' in transcript:
                 transcripts[transcript['geneId']].append(transcript)
             elif 'gene_id' in transcript:
-                transcripts[transcript['geneId']].append(transcript)
+                transcripts[transcript['gene_id']].append(transcript)
             else:
-                raise ValueError("Unrecognized gene_id field in transcript")
+                logger.error(f"Unrecognized gene_id field in transcript : {transcript.keys()}")
 
         result = _get_field_values(hit, CORE_FIELDS_CONFIG, format_response_key=str)
         result.update({
