@@ -414,7 +414,12 @@ class EsSearch(object):
             sorted_transcripts = [{_to_camel_case(k): v for k, v in list(transcript.to_dict().items())} for transcript in hit[SORTED_TRANSCRIPTS_FIELD_KEY]]# if SORTED_TRANSCRIPTS_FIELD_KEY in hit else []
         transcripts = defaultdict(list)
         for transcript in sorted_transcripts:
-            transcripts[transcript['geneId']].append(transcript)
+            if 'geneId' in transcript:
+                transcripts[transcript['geneId']].append(transcript)
+            elif 'gene_id' in transcript:
+                transcripts[transcript['geneId']].append(transcript)
+            else:
+                raise ValueError("Unrecognized gene_id field in transcript")
 
         result = _get_field_values(hit, CORE_FIELDS_CONFIG, format_response_key=str)
         result.update({
